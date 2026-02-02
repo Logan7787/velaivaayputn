@@ -1,0 +1,215 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYER
+  JOBSEEKER
+}
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  STANDARD
+}
+
+enum JobStatus {
+  ACTIVE
+  EXPIRED
+  CLOSED
+  PENDING
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  role          UserRole
+  name          String
+  phone         String?
+  companyName   String?   // For employers
+  location      String?
+  preferredLang String    @default("en") // "en" or "ta"
+  
+  // Profile details
+  profileImage  String?
+  bio           String?
+  skills        String[]  // For job seekers
+  experience    Int?      // Years of experience
+  
+  // Subscription
+  subscription  Subscription?
+  
+  // Relations
+  jobsPosted    Job[]     @relation("EmployerJobs")
+  savedJobs     Job[]     @relation("SavedJobs")
+  contactedJobs Contact[]
+  
+  // Metadata
+  isActive      Boolean   @default(true)
+  isVerified    Boolean   @default(false)
+  verificationToken String?
+  resetToken    String?
+  resetTokenExpiry DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Subscription {
+  id              String           @id @default(uuid())
+  userId          String           @unique
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tier            SubscriptionTier @default(FREE)
+  
+  // For Employers
+  jobPostsLimit   Int              @default(10)  // FREE: 10, BASIC: 15, STANDARD: 25
+  jobPostsUsed    Int              @default(0)
+  
+  // For Job Seekers
+  contactsLimit   Int              @default(10)  // FREE: 10, BASIC: 15, STANDARD: 25
+  contactsUsed    Int              @default(0)
+  
+  // Payment
+  amount          Float            @default(0)   // 0, 49, 99
+  
+  // Dates
+  startDate       DateTime         @default(now())
+  endDate         DateTime?
+  renewalDate     DateTime?        // Auto-renewal date
+  
+  // Transaction
+  transactions    Transaction[]
+  
+  isActive        Boolean          @default(true)
+  autoRenew       Boolean          @default(false)
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([tier])
+}
+
+model Transaction {
+  id              String       @id @default(uuid())
+  subscriptionId  String
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+  
+  amount          Float
+  currency        String       @default("INR")
+  
+  // Payment Gateway
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  
+  status          String       // "pending", "success", "failed"
+  paymentMethod   String?      // "razorpay", "cashfree", etc.
+  
+  createdAt       DateTime     @default(now())
+  
+  @@index([subscriptionId])
+}
+
+model Job {
+  id              String     @id @default(uuid())
+  employerId      String
+  employer        User       @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
+  
+  // Job Details
+  title           String
+  description     String
+  companyName     String
+  companyLogo     String?
+  
+  // Location
+  location        String     // City/District in Tamil Nadu
+  district        String     // Specific district
+  latitude        Float?
+  longitude       Float?
+  
+  // Job Info
+  category        String     // IT, Healthcare, Education, etc.
+  employmentType  String     // Full-time, Part-time, Contract
+  experience      String     // Fresher, 1-3 years, 3-5 years, etc.
+  salary          String?    // Salary range
+  qualifications  String[]   // Required qualifications
+  skills          String[]   // Required skills
+  
+  // Contact
+  contactEmail    String
+  contactPhone    String
+  
+  // Metadata
+  status          JobStatus  @default(PENDING)
+  views           Int        @default(0)
+  applicationCount Int       @default(0)
+  
+  // Relations
+  savedBy         User[]     @relation("SavedJobs")
+  contacts        Contact[]
+  
+  // Timestamps
+  postedAt        DateTime   @default(now())
+  expiresAt       DateTime   // 30 days from posting
+  updatedAt       DateTime   @updatedAt
+  
+  @@index([employerId])
+  @@index([status])
+  @@index([category])
+  @@index([location])
+  @@index([district])
+}
+
+model Contact {
+  id            String   @id @default(uuid())
+  
+  jobId         String
+  job           Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  jobSeekerId   String
+  jobSeeker     User     @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+  
+  // Contact details shared with employer
+  message       String?
+  resume        String?  // URL to resume file
+  
+  createdAt     DateTime @default(now())
+  
+  @@unique([jobId, jobSeekerId])
+  @@index([jobId])
+  @@index([jobSeekerId])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  
+  title       String
+  titleTa     String?  // Tamil translation
+  message     String
+  messageTa   String?  // Tamil translation
+  
+  type        String   // "job_posted", "subscription_expiry", "contact_received", etc.
+  data        Json?    // Additional data
+  
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+}
