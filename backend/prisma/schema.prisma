@@ -52,6 +52,9 @@ model User {
   jobsPosted    Job[]     @relation("EmployerJobs")
   savedJobs     Job[]     @relation("SavedJobs")
   contactedJobs Contact[]
+  employerChats Chat[]    @relation("EmployerChats")
+  jobSeekerChats Chat[]   @relation("JobSeekerChats")
+  sentMessages  Message[] @relation("SentMessages")
   
   // Metadata
   isActive      Boolean   @default(true)
@@ -161,6 +164,7 @@ model Job {
   // Relations
   savedBy         User[]     @relation("SavedJobs")
   contacts        Contact[]
+  chats           Chat[]
   
   // Timestamps
   postedAt        DateTime   @default(now())
@@ -212,4 +216,41 @@ model Notification {
   
   @@index([userId])
   @@index([isRead])
+}
+
+model Chat {
+  id            String    @id @default(uuid())
+  jobId         String?   // Optional: Chat can be about a specific job
+  job           Job?      @relation(fields: [jobId], references: [id])
+  
+  employerId    String
+  employer      User      @relation("EmployerChats", fields: [employerId], references: [id])
+  
+  jobSeekerId   String
+  jobSeeker     User      @relation("JobSeekerChats", fields: [jobSeekerId], references: [id])
+  
+  messages      Message[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([jobId, employerId, jobSeekerId])
+  @@index([employerId])
+  @@index([jobSeekerId])
+}
+
+model Message {
+  id            String    @id @default(uuid())
+  chatId        String
+  chat          Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  senderId      String
+  sender        User      @relation("SentMessages", fields: [senderId], references: [id])
+  
+  content       String
+  isRead        Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([chatId])
 }

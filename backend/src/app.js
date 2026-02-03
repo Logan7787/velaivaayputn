@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth.routes');
 const jobRoutes = require('./routes/job.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
 const adminRoutes = require('./routes/admin.routes');
+const chatRoutes = require('./routes/chat.routes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
