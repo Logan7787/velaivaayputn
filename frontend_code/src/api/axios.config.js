@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Replace with your backend URL (e.g., http://10.0.2.2:5000 for Android Emulator)
-const BASE_URL = 'http://10.0.2.2:5000/api';
+const BASE_URL = 'https://velaivaayputn.onrender.com/api';
 
 const api = axios.create({
     baseURL: BASE_URL,

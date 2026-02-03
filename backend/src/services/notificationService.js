@@ -1,59 +1,41 @@
 const OneSignal = require('onesignal-node');
-const nodemailer = require('nodemailer');
 
-const client = new OneSignal.Client({
-    userAuthKey: process.env.ONESIGNAL_USER_AUTH_KEY || 'auth_key',
-    app: {
-        appAuthKey: process.env.ONESIGNAL_APP_AUTH_KEY || 'app_auth_key',
-        appId: process.env.ONESIGNAL_APP_ID || 'app_id'
+const client = new OneSignal.Client(
+    process.env.ONESIGNAL_APP_ID,
+    process.env.ONESIGNAL_API_KEY // This must be the REST API Key
+);
+
+/**
+ * Send a notification to All Users (Broadcast)
+ * @param {string} heading - Title of the notification
+ * @param {string} content - Body of the message
+ * @param {object} data - Optional data payload (e.g., { jobId: 123 })
+ */
+const sendBroadcastNotification = async (heading, content, data = {}) => {
+    if (!process.env.ONESIGNAL_API_KEY || !process.env.ONESIGNAL_APP_ID) {
+        console.warn('⚠️ OneSignal Keys missing. Skipping notification.');
+        return;
     }
-});
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    }
-});
-
-const sendPushNotification = async (userIds, title, message, data = {}) => {
     try {
         const notification = {
-            contents: { en: message },
-            headings: { en: title },
-            include_external_user_ids: userIds, // Array of user IDs
+            headings: { 'en': heading },
+            contents: { 'en': content },
+            included_segments: ['Total Subscriptions'], // Sends to everyone
             data: data
         };
 
-        // Uncomment when keys are valid
-        // const response = await client.createNotification(notification);
-        // return response;
-        console.log('Push Notification (Simulated):', { userIds, title, message });
-        return { id: 'simulated_notification_id' };
+        const response = await client.createNotification(notification);
+        console.log('✅ Notification Sent:', response.body);
+        return response.body;
     } catch (error) {
-        console.error('Push notification error:', error);
-    }
-};
-
-const sendEmail = async (to, subject, html) => {
-    try {
-        const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to,
-            subject,
-            html
-        });
-        console.log('Email sent:', info.messageId);
-        return info;
-    } catch (error) {
-        console.error('Email sending error:', error);
+        console.error('❌ OneSignal Error:', error);
+        if (error.statusCode === 401) {
+            console.error('Auth Error: Check ONESIGNAL_API_KEY in .env');
+        }
     }
 };
 
 module.exports = {
-    sendPushNotification,
-    sendEmail
+    sendBroadcastNotification
 };

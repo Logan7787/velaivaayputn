@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { sendBroadcastNotification } = require('../services/notificationService');
 const prisma = new PrismaClient();
 
 const createJob = async (req, res) => {
@@ -46,6 +47,13 @@ const createJob = async (req, res) => {
             where: { id: user.subscription.id },
             data: { jobPostsUsed: { increment: 1 } }
         });
+
+        // 🔔 Send OneSignal Notification (Async)
+        sendBroadcastNotification(
+            'New Job Alert! 🚀',
+            `${title} at ${companyName || user.companyName} (${location})`,
+            { jobId: job.id, type: 'new_job' }
+        ).catch(err => console.error('Notification Error:', err));
 
         res.status(201).json(job);
     } catch (error) {

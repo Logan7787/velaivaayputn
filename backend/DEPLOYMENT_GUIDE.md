@@ -18,13 +18,20 @@ To make it work **24/7** (even when your laptop is off), you need to **Deploy** 
 5. Run `npx prisma db push` to send your table structure to the cloud database.
 
 ### 2. Backend (Node.js API)
-**Service**: [Render](https://render.com/) or [Railway](https://railway.app/)
-1. Push your `backend` folder to **GitHub**.
-2. Sign up for Render/Railway.
-3. specific "New Web Service" and connect your GitHub repo.
-4. **Build Command**: `npm install`
-5. **Start Command**: `node src/server.js`
-6. **Environment Variables**: Copy all variables from your `.env` file (DATABASE_URL, JWT_SECRET, etc.) into the service dashboard key-value pairs.
+**Service**: [Render](https://render.com/) (Recommended for Free Tier)
+1. Push your `backend` folder to **GitHub** (Done!).
+2. Sign up for Render.
+3. Click "New" -> "Web Service".
+4. Connect your GitHub repository (`velaivaayputn`).
+5. **Root Directory**: `backend` (Important! Don't leave this empty).
+6. **Build Command**: `npm install`
+7. **Start Command**: `node src/server.js`
+8. **Environment Variables**:
+   - Scroll down to "Environment Variables".
+   - Add `DATABASE_URL` (Use your Supabase/Neon connection string here).
+   - Add `JWT_SECRET`, `JWT_EXPIRE`.
+   - Add `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`.
+   - Add `PORT` = `5000` (Optional, Render assigns one automatically, but good to have).
 
 ### 3. Mobile App (Frontend)
 1. Once the backend is deployed, you will get a URL like `https://velaivaayputn-backend.onrender.com`.
