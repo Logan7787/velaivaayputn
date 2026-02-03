@@ -1,16 +1,5 @@
 const OneSignal = require('onesignal-node');
 
-const client = new OneSignal.Client(
-    process.env.ONESIGNAL_APP_ID,
-    process.env.ONESIGNAL_API_KEY // This must be the REST API Key
-);
-
-/**
- * Send a notification to All Users (Broadcast)
- * @param {string} heading - Title of the notification
- * @param {string} content - Body of the message
- * @param {object} data - Optional data payload (e.g., { jobId: 123 })
- */
 const sendBroadcastNotification = async (heading, content, data = {}) => {
     if (!process.env.ONESIGNAL_API_KEY || !process.env.ONESIGNAL_APP_ID) {
         console.warn('⚠️ OneSignal Keys missing. Skipping notification.');
@@ -18,6 +7,11 @@ const sendBroadcastNotification = async (heading, content, data = {}) => {
     }
 
     try {
+        const client = new OneSignal.Client(
+            process.env.ONESIGNAL_APP_ID,
+            process.env.ONESIGNAL_API_KEY
+        );
+
         const notification = {
             headings: { 'en': heading },
             contents: { 'en': content },
