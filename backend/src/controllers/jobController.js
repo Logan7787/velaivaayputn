@@ -32,7 +32,8 @@ const createJob = async (req, res) => {
                 employmentType,
                 experience,
                 salary,
-                skills,
+                skills: typeof skills === 'string' ? skills.split(',').map(s => s.trim()) : skills,
+                qualifications: [], // Default to empty array as it is required in schema but not in form
                 contactEmail,
                 contactPhone,
                 status: 'ACTIVE',
@@ -112,9 +113,100 @@ const getMyJobs = async (req, res) => {
     }
 };
 
+const applyForJob = async (req, res) => {
+    try {
+        const { message } = req.body;
+        const jobId = req.params.id;
+        const jobSeekerId = req.user.id;
+
+        // Check if already applied
+        const existingContact = await prisma.contact.findUnique({
+            where: {
+                jobId_jobSeekerId: {
+                    jobId,
+                    jobSeekerId
+                }
+            }
+        });
+
+        if (existingContact) {
+            return res.status(400).json({ error: 'You have already applied for this job' });
+        }
+
+        // Check subscription limits for Job Seeker (Optional, based on requirement)
+        // For now, allow free applying or check limit
+        const user = await prisma.user.findUnique({
+            where: { id: jobSeekerId },
+            include: { subscription: true }
+        });
+
+        // Create Contact
+        const contact = await prisma.contact.create({
+            data: {
+                jobId,
+                jobSeekerId,
+                message
+            }
+        });
+
+        // Update Job application count
+        await prisma.job.update({
+            where: { id: jobId },
+            data: { applicationCount: { increment: 1 } }
+        });
+
+        res.status(201).json({ message: 'Application submitted successfully', contact });
+    } catch (error) {
+        console.error('Apply job error:', error);
+        res.status(500).json({ error: 'Failed to apply for job' });
+    }
+};
+
+const getJobApplications = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+
+        // Verify job belongs to employer
+        const job = await prisma.job.findUnique({
+            where: { id: jobId }
+        });
+
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+        if (job.employerId !== req.user.id) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const applications = await prisma.contact.findMany({
+            where: { jobId },
+            include: {
+                jobSeeker: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        skills: true,
+                        experience: true,
+                        profileImage: true,
+                        location: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(applications);
+    } catch (error) {
+        console.error('Fetch applications error:', error);
+        res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+};
+
 module.exports = {
     createJob,
     getJobs,
     getJobById,
-    getMyJobs
+    getMyJobs,
+    applyForJob,
+    getJobApplications
 };
