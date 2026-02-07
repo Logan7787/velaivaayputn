@@ -25,32 +25,30 @@ const JobApplicationsScreen = ({ route, navigation }) => {
     }, [jobId]);
 
     const renderItem = ({ item }) => (
-        <Surface style={styles.cardContainer} elevation={2}>
+        <Surface style={styles.cardContainer} elevation={1}>
             <View style={styles.cardHeader}>
                 <Avatar.Text
                     size={50}
                     label={item.jobSeeker.name.substring(0, 2).toUpperCase()}
-                    style={{ backgroundColor: theme.colors.primaryContainer }}
-                    color={theme.colors.onPrimaryContainer}
+                    style={{ backgroundColor: '#E1E8ED' }}
+                    labelStyle={{ color: '#1A5F7A', fontWeight: 'bold' }}
                 />
                 <View style={styles.headerText}>
-                    <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>{item.jobSeeker.name}</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text variant="titleMedium" style={{ fontWeight: 'bold', color: '#333' }}>{item.jobSeeker.name}</Text>
+                        <MaterialIcons name="chevron-right" size={24} color="#999" />
+                    </View>
                     <View style={styles.dateContainer}>
-                        <MaterialIcons name="event" size={14} color="gray" />
-                        <Text variant="bodySmall" style={{ color: 'gray', marginLeft: 4 }}>
+                        <MaterialIcons name="event" size={14} color="#777" />
+                        <Text variant="bodySmall" style={{ color: '#777', marginLeft: 4 }}>
                             {new Date(item.createdAt).toLocaleDateString()}
                         </Text>
                     </View>
                 </View>
-                <IconButton
-                    icon="chevron-right"
-                    size={24}
-                    onPress={() => navigation.navigate('ApplicantDetails', { applicant: item.jobSeeker, message: item.message })}
-                />
             </View>
 
-            <View style={styles.cardContent}>
-                <Text numberOfLines={2} variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+            <View style={styles.messageBox}>
+                <Text numberOfLines={2} variant="bodyMedium" style={{ color: '#555', fontStyle: 'italic' }}>
                     "{item.message}"
                 </Text>
                 {item.jobSeeker.skills && item.jobSeeker.skills.length > 0 && (
@@ -58,17 +56,13 @@ const JobApplicationsScreen = ({ route, navigation }) => {
                         {item.jobSeeker.skills.slice(0, 3).map((skill, index) => (
                             <Chip
                                 key={index}
-                                textStyle={{ fontSize: 10, lineHeight: 10, marginVertical: 0, paddingVertical: 0 }}
-                                style={{ height: 24, backgroundColor: theme.colors.surfaceVariant }}
+                                textStyle={{ fontSize: 11, color: '#4A148C' }}
+                                style={{ backgroundColor: '#F3E5F5', borderRadius: 8, height: 26 }}
+                                compact
                             >
                                 {skill}
                             </Chip>
                         ))}
-                        {item.jobSeeker.skills.length > 3 && (
-                            <Text variant="bodySmall" style={{ color: 'gray', alignSelf: 'center' }}>
-                                +{item.jobSeeker.skills.length - 3} more
-                            </Text>
-                        )}
                     </View>
                 )}
             </View>
@@ -76,8 +70,9 @@ const JobApplicationsScreen = ({ route, navigation }) => {
             <Button
                 mode="outlined"
                 onPress={() => navigation.navigate('ApplicantDetails', { applicant: item.jobSeeker, message: item.message })}
-                style={{ marginTop: 10, borderColor: theme.colors.primary }}
-                textColor={theme.colors.primary}
+                style={styles.viewProfileBtn}
+                labelStyle={{ fontSize: 13, fontWeight: 'bold', color: '#1A5F7A' }}
+                contentStyle={{ height: 40 }}
             >
                 View Full Profile
             </Button>
@@ -89,21 +84,21 @@ const JobApplicationsScreen = ({ route, navigation }) => {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.container, { backgroundColor: '#F8F9FA' }]}>
             <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
-            <Appbar.Header style={{ backgroundColor: theme.colors.primary }}>
-                <Appbar.BackAction onPress={() => navigation.goBack()} color={theme.colors.onPrimary} />
-                <Appbar.Content title={`Applicants: ${jobTitle}`} titleStyle={{ color: theme.colors.onPrimary }} />
+            <Appbar.Header style={{ backgroundColor: theme.colors.primary, elevation: 4 }}>
+                <Appbar.BackAction onPress={() => navigation.goBack()} color="#fff" />
+                <Appbar.Content title={`Applicants: ${jobTitle}`} titleStyle={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }} />
             </Appbar.Header>
 
             {applications.length === 0 ? (
                 <View style={styles.center}>
                     <Surface style={styles.emptyState} elevation={0}>
-                        <MaterialIcons name="people-outline" size={60} color={theme.colors.outline} />
-                        <Text variant="titleMedium" style={{ marginTop: 16, color: theme.colors.onSurfaceVariant }}>
+                        <MaterialIcons name="people-outline" size={60} color="#DDD" />
+                        <Text variant="titleMedium" style={{ marginTop: 16, color: '#777' }}>
                             No applications yet
                         </Text>
-                        <Text variant="bodyMedium" style={{ color: 'gray', marginTop: 8, textAlign: 'center' }}>
+                        <Text variant="bodyMedium" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
                             Candidates who apply to this job will appear here.
                         </Text>
                     </Surface>
@@ -132,8 +127,10 @@ const styles = StyleSheet.create({
     cardContainer: {
         padding: 16,
         marginBottom: 16,
-        borderRadius: 12,
+        borderRadius: 16,
         backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#EEE',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -147,18 +144,24 @@ const styles = StyleSheet.create({
     dateContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
+        marginTop: 2,
     },
-    cardContent: {
-        backgroundColor: '#F7F9FC', // Light background for content area
+    messageBox: {
+        backgroundColor: '#FAFAFA',
         padding: 12,
-        borderRadius: 8,
+        borderRadius: 12,
+        marginBottom: 16,
     },
     skillsRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
-        marginTop: 8,
+        marginTop: 10,
+    },
+    viewProfileBtn: {
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: '#1A5F7A',
     },
     center: {
         flex: 1,

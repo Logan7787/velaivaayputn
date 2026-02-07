@@ -68,27 +68,28 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
 
                 {/* Quick Info Grid */}
                 <View style={styles.infoGrid}>
-                    <View style={[styles.infoItem, { borderColor: theme.colors.outlineVariant }]}>
-                        <MaterialIcons name="work-outline" size={24} color={theme.colors.primary} />
-                        <Text variant="labelLarge" style={{ marginTop: 4 }}>{applicant.experience || '0'} Years</Text>
-                        <Text variant="bodySmall" style={{ color: 'gray' }}>Experience</Text>
+                    <View style={styles.infoItem}>
+                        <MaterialIcons name="work-outline" size={28} color={theme.colors.primary} />
+                        <Text style={styles.infoLabel}>{applicant.experience || '0'} Years</Text>
+                        <Text style={styles.infoSub}>Experience</Text>
                     </View>
-                    <View style={[styles.infoItem, { borderColor: theme.colors.outlineVariant }]}>
-                        <MaterialIcons name="verified" size={24} color={theme.colors.primary} />
-                        <Text variant="labelLarge" style={{ marginTop: 4 }}>Verified</Text>
-                        <Text variant="bodySmall" style={{ color: 'gray' }}>Status</Text>
+                    <View style={styles.infoItem}>
+                        <MaterialIcons name="verified" size={28} color={theme.colors.primary} />
+                        <Text style={styles.infoLabel}>Verified</Text>
+                        <Text style={styles.infoSub}>Status</Text>
                     </View>
                 </View>
 
                 {/* Application Message */}
-                <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
+                <Card style={styles.card} mode="elevated">
                     <Card.Title
                         title="Application Message"
+                        titleStyle={{ fontWeight: 'bold' }}
                         left={(props) => <MaterialIcons {...props} name="chat-bubble-outline" size={24} color={theme.colors.primary} />}
                     />
                     <Card.Content>
-                        <View style={[styles.messageBox, { backgroundColor: theme.colors.elevation.level1 }]}>
-                            <Text style={{ fontStyle: 'italic', color: theme.colors.onSurfaceVariant }}>
+                        <View style={styles.messageBox}>
+                            <Text style={{ fontStyle: 'italic', color: '#555', fontSize: 16, lineHeight: 24 }}>
                                 "{message}"
                             </Text>
                         </View>
@@ -96,9 +97,10 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                 </Card>
 
                 {/* Professional Skills */}
-                <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} mode="elevated">
+                <Card style={styles.card} mode="elevated">
                     <Card.Title
                         title="Professional Skills"
+                        titleStyle={{ fontWeight: 'bold' }}
                         left={(props) => <MaterialIcons {...props} name="psychology" size={24} color={theme.colors.primary} />}
                     />
                     <Card.Content>
@@ -107,8 +109,8 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                                 applicant.skills.map((skill, index) => (
                                     <Chip
                                         key={index}
-                                        style={[styles.skillChip, { backgroundColor: theme.colors.secondaryContainer }]}
-                                        textStyle={{ color: theme.colors.onSecondaryContainer }}
+                                        style={styles.skillChip}
+                                        textStyle={{ color: '#5E35B1', fontWeight: '600' }}
                                     >
                                         {skill}
                                     </Chip>
@@ -163,7 +165,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerContainer: {
-        height: 180,
+        height: 160,
+        marginBottom: 60, // Space for avatar overlap
     },
     safeArea: {
         width: '100%',
@@ -172,26 +175,29 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        height: 56,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
     },
     scrollContent: {
-        paddingBottom: 20,
+        paddingBottom: 100,
     },
     profileSection: {
         alignItems: 'center',
-        marginTop: -60, // Negative margin to overlap
+        marginTop: -50,
         marginBottom: 20,
     },
     avatarContainer: {
-        borderRadius: 50,
+        borderRadius: 60,
         padding: 4,
         backgroundColor: '#fff',
+        elevation: 4,
     },
     nameText: {
         marginTop: 12,
         fontWeight: 'bold',
         textAlign: 'center',
+        color: '#333',
+        fontSize: 24,
     },
     locationContainer: {
         flexDirection: 'row',
@@ -201,30 +207,44 @@ const styles = StyleSheet.create({
     infoGrid: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginBottom: 20,
+        marginBottom: 24,
         paddingHorizontal: 20,
-        gap: 15,
+        gap: 16,
     },
     infoItem: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        borderRadius: 16,
         borderWidth: 1,
+        borderColor: '#DDD',
         borderStyle: 'dashed',
-        minWidth: 100,
+        backgroundColor: '#fff',
+        minWidth: 120,
+    },
+    infoLabel: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 8,
+        color: '#333',
+    },
+    infoSub: {
+        fontSize: 12,
+        color: '#777',
     },
     card: {
         marginHorizontal: 16,
         marginBottom: 16,
         borderRadius: 16,
+        backgroundColor: '#fff',
+        elevation: 2,
     },
     messageBox: {
-        padding: 12,
-        borderRadius: 8,
-        borderLeftWidth: 4,
-        borderLeftColor: '#ccc',
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: '#F5F5F5',
+        marginTop: 0,
     },
     skillsContainer: {
         flexDirection: 'row',
@@ -232,7 +252,8 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     skillChip: {
-        borderRadius: 20,
+        borderRadius: 12,
+        backgroundColor: '#EDE7F6', // Light purple
     },
     bottomActions: {
         position: 'absolute',
@@ -243,11 +264,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#fff',
         borderTopWidth: 1,
+        borderTopColor: '#EEE',
         gap: 16,
+        elevation: 8,
     },
     actionButton: {
         flex: 1,
-        borderRadius: 8,
+        borderRadius: 12,
+        borderWidth: 1,
     }
 });
 
