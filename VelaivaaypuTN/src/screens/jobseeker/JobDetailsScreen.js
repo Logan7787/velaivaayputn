@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, Linking, Platform, StatusBar } from 'react-native';
-import { Title, Text, Button, Card, Paragraph, Chip, Divider, ActivityIndicator, Avatar, useTheme, IconButton } from 'react-native-paper';
+import { Title, Text, Button, Card, Paragraph, Chip, Divider, ActivityIndicator, Avatar, useTheme, IconButton, Surface } from 'react-native-paper';
 import { getJobById, applyForJob } from '../../api/jobApi';
 import { initiateChat } from '../../api/chatApi';
 import { useSelector } from 'react-redux';
