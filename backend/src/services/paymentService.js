@@ -26,21 +26,8 @@ const createOrder = async (amount, currency = 'INR', receipt) => {
             receipt
         };
 
-        try {
-            const order = await razorpay.orders.create(options);
-            return order;
-        } catch (error) {
-            console.error('Razorpay API Failed:', error);
-            // Fallback to Mock if API fails (e.g. Auth Error)
-            console.warn('⚠️ Falling back to MOCK MODE due to Razorpay API failure.');
-            return {
-                id: 'order_fallback_' + Date.now(),
-                amount: amount * 100,
-                currency,
-                receipt,
-                status: 'created'
-            };
-        }
+        const order = await razorpay.orders.create(options);
+        return order;
     } catch (error) {
         console.error('Create Order Error:', error);
         throw error;

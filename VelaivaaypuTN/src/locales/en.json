@@ -1,0 +1,20 @@
+{
+    "common": {
+        "login": "Login",
+        "register": "Register",
+        "logout": "Logout",
+        "dashboard": "Dashboard"
+    },
+    "auth": {
+        "email": "Email Address",
+        "password": "Password",
+        "name": "Full Name",
+        "welcome": "Welcome back"
+    },
+    "jobs": {
+        "title": "Job Title",
+        "location": "Location",
+        "salary": "Salary",
+        "apply": "Apply Now"
+    }
+}

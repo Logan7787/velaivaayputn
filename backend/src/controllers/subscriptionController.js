@@ -26,7 +26,7 @@ const initiateUpgrade = async (req, res) => {
         if (!plan) return res.status(400).json({ error: 'Invalid plan' });
 
         // Create Razorpay Order
-        const order = await createOrder(plan.amount, 'INR', `sub_${req.user.id}_${Date.now()}`);
+        const order = await createOrder(plan.amount, 'INR', `sub_${req.user.id.substring(0, 10)}_${Date.now()}`);
 
         res.json({
             orderId: order.id,
