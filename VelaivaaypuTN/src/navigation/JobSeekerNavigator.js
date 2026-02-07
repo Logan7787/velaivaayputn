@@ -16,7 +16,7 @@ const JobSeekerNavigator = () => {
             <Stack.Screen name="JobSeekerHome" component={JobSeekerHomeScreen} options={{ headerShown: false }} />
             <Stack.Screen name="JobDetails" component={JobDetailsScreen} options={{ title: 'Job Details' }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Upgrade Plan' }} />
+            <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
             {/* <Stack.Screen name="ChatScreen" component={ChatScreen} options={({ route }) => ({ title: route.params.otherUser.name })} /> */}
         </Stack.Navigator>
     );

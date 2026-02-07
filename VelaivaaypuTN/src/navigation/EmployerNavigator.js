@@ -16,10 +16,10 @@ const EmployerNavigator = () => {
     return (
         <Stack.Navigator>
             <Stack.Screen name="EmployerDashboard" component={EmployerDashboard} options={{ headerShown: false }} />
-            <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Upgrade Plan' }} />
+            <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
             <Stack.Screen name="PostJob" component={PostJobScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="JobApplications" component={JobApplicationsScreen} options={{ title: 'Applications' }} />
+            <Stack.Screen name="JobApplications" component={JobApplicationsScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ApplicantDetails" component={ApplicantDetailsScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
