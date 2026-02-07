@@ -19,8 +19,14 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
         Linking.openURL(`mailto:${applicant.email}`);
     };
 
-    const Header = () => (
-        <View style={[styles.headerContainer, { backgroundColor: theme.colors.primary }]}>
+    return (
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+            {/* Absolute Header Background */}
+            <View style={[styles.headerBackground, { backgroundColor: theme.colors.primary }]} />
+
+            {/* Sticky Header / AppBar */}
             <SafeAreaView edges={['top']} style={styles.safeArea}>
                 <View style={styles.appBar}>
                     <IconButton
@@ -35,17 +41,9 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                     <View style={{ width: 48 }} />
                 </View>
             </SafeAreaView>
-            <View style={styles.headerBackground} />
-        </View>
-    );
-
-    return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
-            <Header />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Profile Avatar Section - Overlapping Header */}
+                {/* Profile Avatar Section */}
                 <View style={styles.profileSection}>
                     <Surface style={styles.avatarContainer} elevation={4}>
                         <Avatar.Text
@@ -164,33 +162,41 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    headerContainer: {
-        height: 160,
-        marginBottom: 60, // Space for avatar overlap
+    headerBackground: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 180,
     },
     safeArea: {
-        width: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
     },
     appBar: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        paddingHorizontal: 8,
+        height: 56,
+        backgroundColor: 'transparent',
     },
     scrollContent: {
+        paddingTop: 120, // Push content down to overlap properly
         paddingBottom: 100,
     },
     profileSection: {
         alignItems: 'center',
-        marginTop: -50,
         marginBottom: 20,
     },
     avatarContainer: {
         borderRadius: 60,
         padding: 4,
         backgroundColor: '#fff',
-        elevation: 4,
+        elevation: 6,
     },
     nameText: {
         marginTop: 12,
