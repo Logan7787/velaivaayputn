@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, TouchableOpacity, StatusBar } from 'react-native';
 import { TextInput, Button, Title, HelperText, Appbar, Text, useTheme, Surface } from 'react-native-paper';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -7,6 +7,7 @@ import { createJob } from '../../api/jobApi';
 
 const PostJobScreen = ({ navigation }) => {
     const { colors } = useTheme();
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Basics, 2: Details, 3: Contact
 
@@ -210,59 +211,64 @@ const PostJobScreen = ({ navigation }) => {
         }
     };
 
-    const insets = useSafeAreaInsets();
-
     return (
-        <View style={[styles.container, { backgroundColor: '#F8F9FA', paddingTop: insets.top }]}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Icon name="close" size={24} color="#333" />
+        <SafeAreaView style={[styles.container, { backgroundColor: '#F8F9FA' }]} edges={['top', 'left', 'right']}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+
+            {/* Premium Header - More compact for 'modal' feel */}
+            <View style={[styles.header, { backgroundColor: colors.primary }]}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
+                    <Icon name="close" size={24} color="#fff" />
                 </TouchableOpacity>
-                <Title>New Job Post</Title>
-                <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Step {step} of 3</Text>
+                <View style={{ alignItems: 'center' }}>
+                    <Title style={styles.headerTitle}>New Job Post</Title>
+                    <Text style={styles.headerSubtitle}>Step {step} of 3</Text>
+                </View>
+                <View style={{ width: 40 }} />
             </View>
 
-            {/* Progress Bar */}
+            {/* Progress Indicator */}
             <View style={styles.progressContainer}>
-                <View style={[styles.progressBar, { width: `${(step / 3) * 100}%`, backgroundColor: colors.primary }]} />
+                <View style={[styles.progressBar, { width: `${(step / 3) * 100}%`, backgroundColor: colors.secondary }]} />
             </View>
 
-            <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: 100 + insets.bottom }]}>
-                <Surface style={styles.card}>
+            <ScrollView
+                contentContainerStyle={styles.scroll}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <Surface style={styles.card} elevation={2}>
                     {renderStepContent()}
                 </Surface>
             </ScrollView>
 
             {/* Bottom Actions */}
-            <View style={[styles.bottomBar, { paddingBottom: Math.max(16, insets.bottom) }]}>
-                {step > 1 && (
-                    <Button mode="outlined" onPress={prevStep} style={styles.navButton}>
+            <View style={[styles.bottomBar, { paddingBottom: Math.max(20, insets.bottom), backgroundColor: '#fff' }]}>
+                {step > 1 ? (
+                    <Button
+                        mode="outlined"
+                        onPress={prevStep}
+                        style={styles.backBtn}
+                        textColor={colors.primary}
+                    >
                         Back
                     </Button>
+                ) : (
+                    <View style={{ flex: 0.5 }} />
                 )}
 
-                {step < 3 ? (
-                    <Button
-                        mode="contained"
-                        onPress={nextStep}
-                        style={[styles.navButton, { flex: 1, marginLeft: 10 }]}
-                    >
-                        Next Step
-                    </Button>
-                ) : (
-                    <Button
-                        mode="contained"
-                        onPress={handleSubmit}
-                        loading={loading}
-                        style={[styles.navButton, { flex: 1, marginLeft: 10, backgroundColor: colors.primary }]}
-                        labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
-                    >
-                        Post Job
-                    </Button>
-                )}
+                <Button
+                    mode="contained"
+                    onPress={step === 3 ? handleSubmit : nextStep}
+                    loading={loading}
+                    style={[styles.nextBtn, { backgroundColor: step === 3 ? colors.secondary : colors.primary }]}
+                    contentStyle={{ height: 50 }}
+                    labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
+                >
+                    {step === 3 ? 'Post Job Now' : 'Next Step'}
+                </Button>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -274,37 +280,59 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        backgroundColor: '#fff',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        elevation: 4,
+        zIndex: 1,
+    },
+    closeButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    headerSubtitle: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.8)',
     },
     progressContainer: {
         height: 4,
-        backgroundColor: '#eee',
+        backgroundColor: '#E0E0E0',
         width: '100%',
+        marginTop: 10,
     },
     progressBar: {
         height: '100%',
+        borderRadius: 2,
     },
     scroll: {
         padding: 20,
         paddingBottom: 100,
     },
     card: {
-        padding: 20,
-        borderRadius: 12,
+        padding: 24,
+        borderRadius: 16,
         backgroundColor: '#fff',
-        elevation: 2,
     },
     stepTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 10,
+        color: '#333',
     },
     stepSubtitle: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 20,
-        marginTop: -10,
+        color: '#777',
+        marginBottom: 25,
     },
     input: {
         marginBottom: 16,
@@ -314,15 +342,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     bottomBar: {
-        padding: 16,
-        backgroundColor: '#fff',
+        paddingHorizontal: 20,
+        paddingTop: 15,
         borderTopWidth: 1,
         borderTopColor: '#eee',
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        elevation: 10,
     },
-    navButton: {
-        borderRadius: 10,
-        paddingVertical: 4,
+    backBtn: {
+        flex: 0.4,
+        borderColor: '#ccc',
+        borderRadius: 25,
+        marginRight: 10,
+    },
+    nextBtn: {
+        flex: 1,
+        borderRadius: 25,
+        elevation: 4,
     }
 });
 
