@@ -15,6 +15,7 @@ const JobDetailsScreen = ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
     const [applying, setApplying] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         const fetchJob = async () => {
@@ -79,8 +80,6 @@ const JobDetailsScreen = ({ route, navigation }) => {
         }
     };
 
-    const insets = useSafeAreaInsets();
-
     if (loading) {
         return (
             <View style={styles.center}>
@@ -92,100 +91,124 @@ const JobDetailsScreen = ({ route, navigation }) => {
     if (!job) return null;
 
     return (
-        <View style={[styles.container, { backgroundColor: '#F8F9FA', paddingTop: insets.top }]}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}>
-                {/* Hero Header */}
-                <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: '#F8F9FA' }]}>
+            <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+            {/* Header Background */}
+            <View style={[styles.headerBackground, { backgroundColor: colors.primary }]} />
+
+            {/* Sticky Header Actions */}
+            <SafeAreaView edges={['top']} style={styles.safeArea}>
+                <View style={styles.appBar}>
                     <IconButton
                         icon="arrow-left"
+                        iconColor="#fff"
                         size={24}
                         onPress={() => navigation.goBack()}
-                        style={[styles.backButton, { top: 10 }]}
                     />
                     <IconButton
                         icon={isSaved ? "bookmark" : "bookmark-outline"}
+                        iconColor="#fff"
                         size={24}
-                        color={isSaved ? colors.primary : '#666'}
                         onPress={() => setIsSaved(!isSaved)}
-                        style={[styles.saveButton, { top: 10 }]}
                     />
+                </View>
+            </SafeAreaView>
 
-                    <View style={styles.logoContainer}>
-                        <Avatar.Text
-                            size={80}
-                            label={job.companyName.substring(0, 2).toUpperCase()}
-                            style={{ backgroundColor: colors.primary }}
-                        />
-                    </View>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Hero Section */}
+                <View style={styles.heroSection}>
+                    <Surface style={styles.logoContainer} elevation={4}>
+                        {job.companyLogo ? (
+                            <Avatar.Image size={80} source={{ uri: job.companyLogo }} />
+                        ) : (
+                            <Avatar.Text
+                                size={80}
+                                label={job.companyName.substring(0, 2).toUpperCase()}
+                                style={{ backgroundColor: colors.surface }}
+                                color={colors.primary}
+                                labelStyle={{ fontWeight: 'bold', fontSize: 28 }}
+                            />
+                        )}
+                    </Surface>
 
-                    <Title style={styles.jobTitle}>{job.title}</Title>
+                    <Text style={styles.jobTitle}>{job.title}</Text>
                     <Text style={styles.companyName}>{job.companyName}</Text>
 
                     <View style={styles.headerMeta}>
-                        <Icon name="map-marker" size={16} color="#666" />
-                        <Text style={styles.metaText}>{job.location}</Text>
-                        <Text style={styles.dot}>•</Text>
-                        <Icon name="clock-outline" size={16} color="#666" />
-                        <Text style={styles.metaText}>{job.employmentType}</Text>
+                        <View style={styles.metaBadge}>
+                            <Icon name="map-marker" size={14} color="#555" />
+                            <Text style={styles.metaText}>{job.location}</Text>
+                        </View>
+                        <View style={styles.metaBadge}>
+                            <Icon name="clock-outline" size={14} color="#555" />
+                            <Text style={styles.metaText}>{job.employmentType}</Text>
+                        </View>
                     </View>
                 </View>
 
-                {/* Quick Stats */}
+                {/* Quick Info Cards */}
                 <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                        <Text style={[styles.statLabel, { color: colors.secondary }]}>Salary</Text>
-                        <Text style={styles.statValue}>₹ {job.salary || 'N/A'}</Text>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statLabel}>Salary</Text>
+                        <Text style={[styles.statValue, { color: '#2E7D32' }]}>₹ {job.salary || 'N/A'}</Text>
                     </View>
-                    <View style={styles.divider} />
-                    <View style={styles.statItem}>
-                        <Text style={[styles.statLabel, { color: colors.secondary }]}>Experience</Text>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statLabel}>Experience</Text>
                         <Text style={styles.statValue}>{job.experience}</Text>
                     </View>
-                    <View style={styles.divider} />
-                    <View style={styles.statItem}>
-                        <Text style={[styles.statLabel, { color: colors.secondary }]}>Job Type</Text>
+                    <View style={styles.statCard}>
+                        <Text style={styles.statLabel}>Schedule</Text>
                         <Text style={styles.statValue}>{job.schedule || 'Full-time'}</Text>
                     </View>
                 </View>
 
-                {/* Tabs / Sections */}
-                <View style={[styles.section, { borderTopLeftRadius: 30, borderTopRightRadius: 30 }]}>
-                    <Title style={styles.sectionTitle}>Description</Title>
-                    <Paragraph style={styles.descriptionText}>
-                        {job.description}
-                    </Paragraph>
-                </View>
+                {/* Description Section */}
+                <Card style={styles.sectionCard} mode="elevated">
+                    <Card.Title title="Job Description" titleStyle={styles.cardTitle} left={props => <Icon {...props} name="text-box-outline" size={24} color={colors.primary} />} />
+                    <Card.Content>
+                        <Paragraph style={styles.descriptionText}>
+                            {job.description}
+                        </Paragraph>
+                    </Card.Content>
+                </Card>
 
-                <View style={styles.section}>
-                    <Title style={styles.sectionTitle}>Requirements & Skills</Title>
-                    <View style={styles.chipContainer}>
-                        {job.skills && job.skills.map((skill, index) => (
-                            <Chip key={index} style={styles.chip} textStyle={{ fontSize: 13, color: '#444' }}>{skill}</Chip>
-                        ))}
-                    </View>
-                </View>
+                {/* Skills Section */}
+                <Card style={styles.sectionCard} mode="elevated">
+                    <Card.Title title="Requirements & Skills" titleStyle={styles.cardTitle} left={props => <Icon {...props} name="format-list-checks" size={24} color={colors.primary} />} />
+                    <Card.Content>
+                        <View style={styles.chipContainer}>
+                            {job.skills && job.skills.map((skill, index) => (
+                                <Chip key={index} style={styles.chip} textStyle={{ fontSize: 13, color: '#1A5F7A' }}>{skill}</Chip>
+                            ))}
+                        </View>
+                    </Card.Content>
+                </Card>
 
-                <View style={styles.section}>
-                    <Title style={styles.sectionTitle}>Contact Info</Title>
-                    <View style={styles.contactRow}>
-                        <Icon name="email" size={20} color={colors.primary} />
-                        <Text style={styles.contactText}>{job.contactEmail}</Text>
-                    </View>
-                    <View style={styles.contactRow}>
-                        <Icon name="phone" size={20} color={colors.primary} />
-                        <Text style={styles.contactText}>{job.contactPhone}</Text>
-                    </View>
-                </View>
+                {/* Contact Section */}
+                <Card style={[styles.sectionCard, { marginBottom: 100 }]} mode="elevated">
+                    <Card.Title title="Contact Info" titleStyle={styles.cardTitle} left={props => <Icon {...props} name="card-account-phone-outline" size={24} color={colors.primary} />} />
+                    <Card.Content>
+                        <View style={styles.contactRow}>
+                            <Icon name="email" size={20} color={colors.primary} />
+                            <Text style={styles.contactText}>{job.contactEmail}</Text>
+                        </View>
+                        <View style={styles.contactRow}>
+                            <Icon name="phone" size={20} color={colors.primary} />
+                            <Text style={styles.contactText}>{job.contactPhone}</Text>
+                        </View>
+                    </Card.Content>
+                </Card>
             </ScrollView>
 
             {/* Bottom Action Bar */}
-            <View style={[styles.bottomBar, { paddingBottom: Math.max(16, insets.bottom), bottom: 0 }]}>
+            <Surface style={[styles.bottomBar, { paddingBottom: Math.max(16, insets.bottom) }]} elevation={8}>
                 <Button
                     mode="outlined"
                     icon="chat"
                     onPress={handleChat}
-                    style={styles.chatButton}
-                    labelStyle={{ color: colors.primary }}
+                    style={[styles.chatButton, { borderColor: colors.primary }]}
+                    textColor={colors.primary}
                 >
                     Chat
                 </Button>
@@ -198,7 +221,7 @@ const JobDetailsScreen = ({ route, navigation }) => {
                 >
                     Apply Now
                 </Button>
-            </View>
+            </Surface>
         </View>
     );
 };
@@ -212,87 +235,115 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    header: {
+    headerBackground: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 160,
+    },
+    safeArea: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+    },
+    appBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 8,
+        height: 56,
         alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#fff',
     },
-    backButton: {
-        position: 'absolute',
-        left: 10,
-        top: 10,
+    scrollContent: {
+        paddingTop: 100, // Push content down
+        paddingBottom: 20,
     },
-    saveButton: {
-        position: 'absolute',
-        right: 10,
-        top: 10,
+    heroSection: {
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 20,
     },
     logoContainer: {
-        marginBottom: 15,
-        elevation: 5,
-        borderRadius: 40,
+        marginBottom: 16,
+        borderRadius: 50,
+        padding: 4,
+        backgroundColor: '#fff',
+        elevation: 6,
     },
     jobTitle: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 5,
+        color: '#333',
+        marginBottom: 4,
     },
     companyName: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#666',
-        marginBottom: 10,
+        marginBottom: 12,
+        fontWeight: '500',
     },
     headerMeta: {
         flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 10,
+    },
+    metaBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#E1E8ED',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 20,
     },
     metaText: {
-        color: '#666',
-        marginLeft: 5,
-        fontSize: 14,
-    },
-    dot: {
-        marginHorizontal: 8,
-        color: '#ccc',
+        color: '#555',
+        marginLeft: 6,
+        fontSize: 12,
+        fontWeight: '600',
     },
     statsContainer: {
         flexDirection: 'row',
-        backgroundColor: '#fff',
-        paddingVertical: 15,
-        marginTop: 2,
-        marginBottom: 10,
-        justifyContent: 'space-around',
-        elevation: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        gap: 12,
+        marginBottom: 20,
     },
-    statItem: {
-        alignItems: 'center',
+    statCard: {
         flex: 1,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 1,
+        borderWidth: 1,
+        borderColor: '#EEE',
     },
     statLabel: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 11,
+        color: '#888',
         textTransform: 'uppercase',
+        marginBottom: 4,
+        fontWeight: 'bold',
     },
     statValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginTop: 4,
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: '#333',
+        textAlign: 'center',
     },
-    divider: {
-        width: 1,
-        backgroundColor: '#eee',
-        height: '80%',
-    },
-    section: {
+    sectionCard: {
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 16,
         backgroundColor: '#fff',
-        padding: 20,
-        marginTop: 10,
     },
-    sectionTitle: {
+    cardTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 12,
     },
     descriptionText: {
         fontSize: 15,
@@ -302,21 +353,25 @@ const styles = StyleSheet.create({
     chipContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        gap: 8,
     },
     chip: {
-        marginRight: 8,
-        marginBottom: 8,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#E0F7FA',
+        borderRadius: 8,
     },
     contactRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 12,
+        backgroundColor: '#F9F9F9',
+        padding: 12,
+        borderRadius: 10,
     },
     contactText: {
-        marginLeft: 10,
-        fontSize: 16,
+        marginLeft: 12,
+        fontSize: 15,
         color: '#333',
+        fontWeight: '500',
     },
     bottomBar: {
         position: 'absolute',
@@ -326,21 +381,18 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         flexDirection: 'row',
         padding: 16,
-        elevation: 20,
         borderTopWidth: 1,
-        borderTopColor: '#f0f0f0',
+        borderTopColor: '#EEE',
+        gap: 16,
     },
     chatButton: {
         flex: 1,
-        marginRight: 10,
         borderRadius: 12,
-        borderColor: '#ddd',
         borderWidth: 1,
     },
     applyButton: {
         flex: 2,
         borderRadius: 12,
-        paddingVertical: 2,
     }
 });
 
