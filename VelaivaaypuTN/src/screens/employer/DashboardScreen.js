@@ -7,12 +7,14 @@ import { logoutUser } from '../../redux/authSlice';
 import { getMyJobs } from '../../api/jobApi';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Skeleton from '../../components/common/Skeleton';
 
 const EmployerDashboard = ({ navigation }) => {
     const { colors } = useTheme();
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
     const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Stats
@@ -26,6 +28,7 @@ const EmployerDashboard = ({ navigation }) => {
         } catch (error) {
             console.error(error);
         } finally {
+            setLoading(false);
             setRefreshing(false);
         }
     };
@@ -140,7 +143,26 @@ const EmployerDashboard = ({ navigation }) => {
                     <Button mode="text" labelStyle={{ color: colors.primary, fontWeight: '600' }} onPress={() => { }}>View All</Button>
                 </View>
 
-                {jobs.length === 0 ? (
+                {loading ? (
+                    <View>
+                        {[1, 2].map(i => (
+                            <View key={i} style={{ marginBottom: 16, borderRadius: 16, backgroundColor: '#fff', padding: 16, elevation: 2 }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                                    <View>
+                                        <Skeleton width={150} height={20} style={{ marginBottom: 8 }} />
+                                        <Skeleton width={100} height={14} />
+                                    </View>
+                                    <Skeleton width={60} height={24} borderRadius={20} />
+                                </View>
+                                <Divider style={{ marginVertical: 12 }} />
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                    <Skeleton width={100} height={16} />
+                                    <Skeleton width={20} height={20} />
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                ) : jobs.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Icon name="briefcase-plus-outline" size={60} color="#ccc" />
                         <Title style={{ marginTop: 15, color: '#555' }}>No Jobs Posted Yet</Title>

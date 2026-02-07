@@ -4,6 +4,7 @@ import { Title, Text, Button, Searchbar, Card, Chip, useTheme, Avatar, IconButto
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '../../redux/authSlice';
+import Skeleton from '../../components/common/Skeleton';
 import { getAllJobs } from '../../api/jobApi';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -166,8 +167,23 @@ const JobSeekerHomeScreen = ({ navigation }) => {
                 </View>
 
                 {loading ? (
-                    <View style={styles.loadingContainer}>
-                        <Text>Finding opportunities...</Text>
+                    <View style={{ padding: 20 }}>
+                        {[1, 2, 3].map(i => (
+                            <View key={i} style={{ marginBottom: 15, backgroundColor: '#fff', padding: 15, borderRadius: 16, elevation: 2 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                                    <Skeleton width={48} height={48} borderRadius={12} />
+                                    <View style={{ marginLeft: 12, flex: 1 }}>
+                                        <Skeleton width={140} height={20} style={{ marginBottom: 6 }} />
+                                        <Skeleton width={90} height={14} />
+                                    </View>
+                                </View>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                                    <Skeleton width={70} height={20} borderRadius={4} />
+                                    <Skeleton width={70} height={20} borderRadius={4} />
+                                    <Skeleton width={70} height={20} borderRadius={4} />
+                                </View>
+                            </View>
+                        ))}
                     </View>
                 ) : jobs.length === 0 ? (
                     <View style={styles.emptyContainer}>
