@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator, Platform, Text } from 'react-native';
-import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, Send, InputToolbar, Message } from 'react-native-gifted-chat';
 import { io } from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
 import { getChatMessages } from '../../api/chatApi';
@@ -125,6 +125,11 @@ const ChatScreen = ({ route, navigation }) => {
         );
     };
 
+    const renderMessage = (props) => {
+        const { key, ...rest } = props;
+        return <Message key={key} {...rest} />;
+    };
+
     if (loading) {
         return (
             <View style={[styles.center, { backgroundColor: '#fff' }]}>
@@ -148,6 +153,7 @@ const ChatScreen = ({ route, navigation }) => {
                         name: user?.name,
                         avatar: user?.profileImage
                     }}
+                    renderMessage={renderMessage}
                     renderBubble={renderBubble}
                     renderSend={renderSend}
                     placeholder="Type a message..."
