@@ -16,6 +16,18 @@ export const theme = {
             level2: '0px 4px 8px rgba(0, 0, 0, 0.1)',
         }
     },
+    spacing: {
+        xs: 4,
+        s: 8,
+        m: 16,
+        l: 24,
+        xl: 32,
+    },
+    layout: {
+        headerHeight: 60,
+        cardRadius: 16,
+        inputRadius: 12,
+    },
     roundness: 12, // Modern rounded corners
     fonts: {
         ...MD3LightTheme.fonts,

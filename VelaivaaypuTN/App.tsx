@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import store from './src/redux/store';
 import AppNavigator from './src/navigation/AppNavigator';
 import { theme } from './src/theme';
+import GlobalToast from './src/components/common/GlobalToast';
 
 import { LogLevel, OneSignal } from 'react-native-onesignal';
 
@@ -27,6 +28,7 @@ const App = () => {
             translucent={true}
           />
           <AppNavigator />
+          <GlobalToast />
         </PaperProvider>
       </SafeAreaProvider>
     </Provider>

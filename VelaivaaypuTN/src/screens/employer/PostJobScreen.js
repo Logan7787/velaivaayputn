@@ -4,9 +4,12 @@ import { TextInput, Button, Title, HelperText, Appbar, Text, useTheme, Surface }
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createJob } from '../../api/jobApi';
+import { useDispatch } from 'react-redux';
+import { showToast } from '../../redux/uiSlice';
 
 const PostJobScreen = ({ navigation }) => {
     const { colors } = useTheme();
+    const dispatch = useDispatch();
     const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Basics, 2: Details, 3: Contact
@@ -33,13 +36,13 @@ const PostJobScreen = ({ navigation }) => {
     const validateStep = () => {
         if (step === 1) {
             if (!form.title || !form.companyName || !form.location) {
-                Alert.alert('Missing Fields', 'Please fill in Title, Company, and Location.');
+                dispatch(showToast({ message: 'Please fill in Title, Company, and Location.', type: 'error' }));
                 return false;
             }
         }
         if (step === 2) {
             if (!form.description || !form.category) {
-                Alert.alert('Missing Fields', 'Please fill in Description and Category.');
+                dispatch(showToast({ message: 'Please fill in Description and Category.', type: 'error' }));
                 return false;
             }
         }
@@ -54,16 +57,22 @@ const PostJobScreen = ({ navigation }) => {
 
     const handleSubmit = async () => {
         if (!form.contactEmail || !form.contactPhone) {
-            Alert.alert('Missing Fields', 'Please provide contact information.');
+            dispatch(showToast({ message: 'Please provide contact information.', type: 'error' }));
+            return;
+        }
+
+        // Basic Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.contactEmail)) {
+            dispatch(showToast({ message: 'Please enter a valid email address.', type: 'error' }));
             return;
         }
 
         setLoading(true);
         try {
             await createJob(form);
-            Alert.alert('Success', '🎉 Job Posted Successfully!', [
-                { text: 'View Dashboard', onPress: () => navigation.goBack() }
-            ]);
+            dispatch(showToast({ message: '🎉 Job Posted Successfully!', type: 'success' }));
+            navigation.goBack();
         } catch (error) {
             console.error(error);
             const errorMessage = error.response?.data?.error || 'Failed to post job';
@@ -73,7 +82,7 @@ const PostJobScreen = ({ navigation }) => {
                     { text: 'Upgrade Now', onPress: () => navigation.navigate('Subscription') }
                 ]);
             } else {
-                Alert.alert('Error', errorMessage);
+                dispatch(showToast({ message: errorMessage, type: 'error' }));
             }
         } finally {
             setLoading(false);

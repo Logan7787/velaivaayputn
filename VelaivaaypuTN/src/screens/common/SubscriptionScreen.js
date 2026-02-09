@@ -32,9 +32,8 @@ const SubscriptionScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
     const [loading, setLoading] = useState(false);
+    const [verifying, setVerifying] = useState(false);
     const [visible, setVisible] = useState(false);
-    const [selectedPlan, setSelectedPlan] = useState(null);
-    const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
 
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);
@@ -69,6 +68,7 @@ const SubscriptionScreen = ({ navigation }) => {
 
             // 3. Open Razorpay Checkout
             RazorpayCheckout.open(options).then(async (data) => {
+                setVerifying(true);
                 try {
                     await api.post('/subscriptions/verify', {
                         razorpay_order_id: data.razorpay_order_id,
@@ -77,26 +77,29 @@ const SubscriptionScreen = ({ navigation }) => {
                         tier: selectedPlan.id
                     });
 
-                    alert(`🎉 Successfully upgraded to ${selectedPlan.name} Plan!`);
+                    dispatch(showToast({ message: `🎉 Successfully upgraded to ${selectedPlan.name} Plan!`, type: 'success' }));
                     dispatch(loadUser());
                     setVisible(false);
                     navigation.goBack();
                 } catch (verifyError) {
                     console.error('Verification Error:', verifyError);
-                    alert('Payment Verification Failed. Please contact support.');
+                    dispatch(showToast({ message: 'Payment Verification Failed. Please contact support.', type: 'error' }));
+                } finally {
+                    setVerifying(false);
                 }
             }).catch((error) => {
                 console.log('Payment Error:', error);
                 if (error.code && error.description) {
-                    alert(`Payment Failed: ${error.description}`);
+                    dispatch(showToast({ message: `Payment Failed: ${error.description}`, type: 'error' }));
                 } else {
-                    alert('Payment Cancelled');
+                    dispatch(showToast({ message: 'Payment Cancelled', type: 'info' }));
                 }
             });
 
         } catch (error) {
             console.error('Initiation Error:', error);
-            alert('Failed to initiate payment. Please try again.');
+            // Axios interceptor will handle the toast for server errors, 
+            // but we can add specific ones here if needed.
         } finally {
             setLoading(false);
         }
@@ -207,12 +210,13 @@ const SubscriptionScreen = ({ navigation }) => {
                     <Button
                         mode="contained"
                         onPress={handlePayment}
-                        loading={loading}
+                        loading={loading || verifying}
+                        disabled={loading || verifying}
                         style={styles.payButton}
                         contentStyle={{ height: 50 }}
                         labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
                     >
-                        Proceed to Pay
+                        {verifying ? 'Verifying Payment...' : 'Proceed to Pay'}
                     </Button>
                     <Button onPress={() => setVisible(false)} style={{ marginTop: 10 }} textColor="#777">Cancel</Button>
                 </Modal>

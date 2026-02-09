@@ -1,7 +1,8 @@
 import axios from 'axios';
+import store from '../redux/store';
+import { showToast } from '../redux/uiSlice';
 
 // Replace with your backend URL (e.g., http://10.0.2.2:5000 for Android Emulator)
-// For Physical Device on Wi-Fi (Same Network)
 const BASE_URL = 'https://velaivaayputn.onrender.com/api';
 
 const api = axios.create({
@@ -18,5 +19,25 @@ export const setAuthToken = (token) => {
         delete api.defaults.headers.common['Authorization'];
     }
 };
+
+// Response Interceptor for Global Error Handling
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const { response, message } = error;
+
+        if (response) {
+            if (response.status === 401) {
+                store.dispatch(showToast({ message: 'Session expired. Please login again.', type: 'error' }));
+            } else if (response.status >= 500) {
+                store.dispatch(showToast({ message: 'Server error. Please try again later.', type: 'error' }));
+            }
+        } else if (message === 'Network Error') {
+            store.dispatch(showToast({ message: 'No internet connection.', type: 'error' }));
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export default api;

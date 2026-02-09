@@ -8,7 +8,7 @@ import ProfileScreen from '../screens/common/ProfileScreen';
 import SubscriptionScreen from '../screens/common/SubscriptionScreen';
 
 const Stack = createStackNavigator();
-// import ChatScreen from '../screens/common/ChatScreen';
+import ChatScreen from '../screens/common/ChatScreen';
 
 const JobSeekerNavigator = () => {
     return (
@@ -17,7 +17,7 @@ const JobSeekerNavigator = () => {
             <Stack.Screen name="JobDetails" component={JobDetailsScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ headerShown: false }} />
-            {/* <Stack.Screen name="ChatScreen" component={ChatScreen} options={({ route }) => ({ title: route.params.otherUser.name })} /> */}
+            <Stack.Screen name="ChatScreen" component={ChatScreen} options={({ route }) => ({ title: route.params.otherUser.name })} />
         </Stack.Navigator>
     );
 };

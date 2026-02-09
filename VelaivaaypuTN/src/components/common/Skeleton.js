@@ -11,12 +11,12 @@ const Skeleton = ({ width, height, style, borderRadius = 4 }) => {
             Animated.sequence([
                 Animated.timing(opacity, {
                     toValue: 0.7,
-                    duration: 800,
+                    duration: 1000,
                     useNativeDriver: true,
                 }),
                 Animated.timing(opacity, {
                     toValue: 0.3,
-                    duration: 800,
+                    duration: 1000,
                     useNativeDriver: true,
                 }),
             ])
