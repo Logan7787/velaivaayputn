@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, Image, StatusBar, TouchableOpacity } from 'react-native';
-import { Title, Text, Button, Card, Paragraph, Divider, useTheme, Avatar, IconButton, FAB } from 'react-native-paper';
+import { Title, Text, Button, Card, Paragraph, Divider, useTheme, Avatar, IconButton, FAB, Surface } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '../../redux/authSlice';
