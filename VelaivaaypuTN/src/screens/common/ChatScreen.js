@@ -97,27 +97,33 @@ const ChatScreen = ({ route, navigation }) => {
         }
     }, [socket, chatId, user]);
 
-    const renderBubble = (props) => (
-        <Bubble
-            {...props}
-            wrapperStyle={{
-                right: { backgroundColor: colors.primary },
-                left: { backgroundColor: '#f0f0f0' }
-            }}
-            textStyle={{
-                right: { color: '#fff' },
-                left: { color: '#333' }
-            }}
-        />
-    );
+    const renderBubble = (props) => {
+        const { key, ...rest } = props;
+        return (
+            <Bubble
+                {...rest}
+                wrapperStyle={{
+                    right: { backgroundColor: colors.primary },
+                    left: { backgroundColor: '#f0f0f0' }
+                }}
+                textStyle={{
+                    right: { color: '#fff' },
+                    left: { color: '#333' }
+                }}
+            />
+        );
+    };
 
-    const renderSend = (props) => (
-        <Send {...props}>
-            <View style={styles.sendButton}>
-                <Icon name="send" size={24} color={colors.primary} />
-            </View>
-        </Send>
-    );
+    const renderSend = (props) => {
+        const { key, ...rest } = props;
+        return (
+            <Send {...rest}>
+                <View style={styles.sendButton}>
+                    <Icon name="send" size={24} color={colors.primary} />
+                </View>
+            </Send>
+        );
+    };
 
     if (loading) {
         return (
@@ -155,12 +161,15 @@ const ChatScreen = ({ route, navigation }) => {
                             <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
                         </View>
                     )}
-                    renderInputToolbar={(props) => (
-                        <InputToolbar
-                            {...props}
-                            containerStyle={styles.inputToolbar}
-                        />
-                    )}
+                    renderInputToolbar={(props) => {
+                        const { key, ...rest } = props;
+                        return (
+                            <InputToolbar
+                                {...rest}
+                                containerStyle={styles.inputToolbar}
+                            />
+                        );
+                    }}
                 />
             </View>
         </SafeAreaView>
