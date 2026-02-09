@@ -4,7 +4,7 @@ import { Title, Text, Button, Card, Paragraph, Divider, useTheme, Avatar, IconBu
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '../../redux/authSlice';
-import { getMyJobs } from '../../api/jobApi';
+import { getMyJobs, getEmployerStats } from '../../api/jobApi';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Skeleton from '../../components/common/Skeleton';
@@ -15,6 +15,7 @@ const EmployerDashboard = ({ navigation }) => {
     const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
     const [jobs, setJobs] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -24,13 +25,11 @@ const EmployerDashboard = ({ navigation }) => {
 
     const fetchMyJobs = async () => {
         try {
-            const data = await getMyJobs();
-            setJobs(data);
+            const [jobsData, statsData] = await Promise.all([getMyJobs(), getEmployerStats()]);
+            setJobs(jobsData);
+            setStats(statsData);
         } catch (error) {
-            console.error('Fetch Jobs Error:', error.response?.data || error.message);
-            if (error.response?.status === 403) {
-                console.log('Role Mismatch or Authorization Issue. Current User:', user);
-            }
+            console.error('Fetch Dashboard Error:', error.response?.data || error.message);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -46,6 +45,22 @@ const EmployerDashboard = ({ navigation }) => {
     const onRefresh = () => {
         setRefreshing(true);
         fetchMyJobs();
+    };
+
+    const renderTrendChart = () => {
+        if (!stats?.trends) return null;
+        const maxCount = Math.max(...stats.trends.map(t => t.count), 1);
+
+        return (
+            <View style={styles.chartContainer}>
+                {stats.trends.map((day, idx) => (
+                    <View key={idx} style={styles.chartBarWrapper}>
+                        <View style={[styles.chartBar, { height: (day.count / maxCount) * 80 + 5, backgroundColor: idx === 6 ? '#10B981' : '#1A5F7A' }]} />
+                        <Text style={styles.chartLabel}>{new Date(day.date).toLocaleDateString(undefined, { weekday: 'narrow' })}</Text>
+                    </View>
+                ))}
+            </View>
+        );
     };
 
     return (
@@ -145,6 +160,46 @@ const EmployerDashboard = ({ navigation }) => {
                         </Button>
                     </Card.Content>
                 </Card>
+
+                {/* Hiring Pipeline Analytics */}
+                <View style={styles.sectionHeader}>
+                    <Title style={styles.sectionTitle}>Recruitment Pipeline</Title>
+                </View>
+                <Surface style={styles.pipelineContainer} elevation={1}>
+                    <View style={styles.pipelineRow}>
+                        <View style={styles.pipelineItem}>
+                            <Text style={[styles.pipelineNumber, { color: '#64748B' }]}>{stats?.pipeline?.PENDING || 0}</Text>
+                            <Text style={styles.pipelineLabel}>Pending</Text>
+                        </View>
+                        <Divider style={styles.verticalDivider} />
+                        <View style={styles.pipelineItem}>
+                            <Text style={[styles.pipelineNumber, { color: '#0EA5E9' }]}>{stats?.pipeline?.SHORTLISTED || 0}</Text>
+                            <Text style={styles.pipelineLabel}>Shortlisted</Text>
+                        </View>
+                        <Divider style={styles.verticalDivider} />
+                        <View style={styles.pipelineItem}>
+                            <Text style={[styles.pipelineNumber, { color: '#F59E0B' }]}>{stats?.pipeline?.INTERVIEW || 0}</Text>
+                            <Text style={styles.pipelineLabel}>Interviews</Text>
+                        </View>
+                        <Divider style={styles.verticalDivider} />
+                        <View style={styles.pipelineItem}>
+                            <Text style={[styles.pipelineNumber, { color: '#10B981' }]}>{stats?.pipeline?.HIRED || 0}</Text>
+                            <Text style={styles.pipelineLabel}>Hired</Text>
+                        </View>
+                    </View>
+                </Surface>
+
+                {/* Application Trends */}
+                <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+                    <Title style={styles.sectionTitle}>Application Volume (7d)</Title>
+                    <View style={styles.trendIndicator}>
+                        <Icon name="trending-up" size={14} color="#10B981" />
+                        <Text style={styles.trendText}>+12%</Text>
+                    </View>
+                </View>
+                <Surface style={styles.chartSurface} elevation={1}>
+                    {renderTrendChart()}
+                </Surface>
 
                 {/* Job Posts Section */}
                 <View style={styles.sectionHeader}>
@@ -424,6 +479,75 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
     },
+    pipelineContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 10,
+    },
+    pipelineRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+    },
+    pipelineItem: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    pipelineNumber: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    pipelineLabel: {
+        fontSize: 10,
+        color: '#64748B',
+        marginTop: 4,
+        fontWeight: '600',
+    },
+    verticalDivider: {
+        width: 1,
+        height: 30,
+        backgroundColor: '#F1F5F9',
+    },
+    chartSurface: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 20,
+    },
+    chartContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        height: 100,
+    },
+    chartBarWrapper: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    chartBar: {
+        width: 20,
+        borderRadius: 4,
+    },
+    chartLabel: {
+        fontSize: 10,
+        color: '#94A3B8',
+        marginTop: 8,
+    },
+    trendIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ECFDF5',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    trendText: {
+        fontSize: 12,
+        color: '#059669',
+        fontWeight: 'bold',
+        marginLeft: 4,
+    }
 });
 
 export default EmployerDashboard;

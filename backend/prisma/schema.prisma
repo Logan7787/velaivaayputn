@@ -50,7 +50,11 @@ model User {
   
   // Profile details
   profileImage  String?
+  headerImage   String?
   bio           String?
+  website       String?
+  linkedin      String?
+  twitter       String?
   skills        String[]  // For job seekers
   experience    Int?      // Years of experience
   
@@ -200,6 +204,7 @@ model Contact {
   message       String?
   resume        String?  // URL to resume file
   status        ApplicationStatus @default(PENDING)
+  notes         String?
   
   createdAt     DateTime @default(now())
   

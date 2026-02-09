@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Linking, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
-import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme, Menu } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Linking, Dimensions, StatusBar, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
+import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme, Menu, TextInput } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { initiateChat } from '../../api/chatApi';
@@ -11,11 +11,13 @@ import { showToast } from '../../redux/uiSlice';
 const { width } = Dimensions.get('window');
 
 const ApplicantDetailsScreen = ({ route, navigation }) => {
-    const { applicant, message, jobId, applicationId, currentStatus } = route.params;
+    const { applicant, message, jobId, applicationId, currentStatus, notes: initialNotes } = route.params;
     const theme = useTheme();
     const dispatch = useDispatch();
     const insets = useSafeAreaInsets();
     const [status, setStatus] = React.useState(currentStatus);
+    const [notes, setNotes] = React.useState(initialNotes || '');
+    const [savingNotes, setSavingNotes] = React.useState(false);
     const [menuVisible, setMenuVisible] = React.useState(false);
 
     const STATUS_OPTIONS = ['PENDING', 'REVIEWED', 'SHORTLISTED', 'INTERVIEW', 'HIRED', 'REJECTED'];
@@ -48,6 +50,18 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
             dispatch(showToast({ message: `Status updated to ${newStatus}`, type: 'success' }));
         } catch (error) {
             dispatch(showToast({ message: 'Failed to update status', type: 'error' }));
+        }
+    };
+
+    const handleSaveNotes = async () => {
+        setSavingNotes(true);
+        try {
+            await updateApplicationStatus(applicationId, status, notes);
+            dispatch(showToast({ message: 'Notes saved successfully', type: 'success' }));
+        } catch (error) {
+            dispatch(showToast({ message: 'Failed to save notes', type: 'error' }));
+        } finally {
+            setSavingNotes(false);
         }
     };
 
@@ -179,6 +193,38 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                                 <Text style={{ color: 'gray' }}>No skills listed.</Text>
                             )}
                         </View>
+                    </Card.Content>
+                </Card>
+
+                {/* Private Notes Section */}
+                <Card style={styles.card} mode="elevated">
+                    <Card.Title
+                        title="Private Candidate Notes"
+                        titleStyle={{ fontWeight: 'bold' }}
+                        left={(props) => <MaterialIcons {...props} name="note-add" size={24} color={theme.colors.primary} />}
+                    />
+                    <Card.Content>
+                        <Paragraph style={styles.notesHelp}>
+                            Only visible to your recruitment team.
+                        </Paragraph>
+                        <TextInput
+                            mode="outlined"
+                            placeholder="Add interview feedback or general thoughts..."
+                            value={notes}
+                            onChangeText={setNotes}
+                            multiline
+                            numberOfLines={4}
+                            style={styles.notesInput}
+                            outlineStyle={{ borderRadius: 12 }}
+                        />
+                        <Button
+                            mode="contained"
+                            onPress={handleSaveNotes}
+                            loading={savingNotes}
+                            style={styles.saveNotesBtn}
+                        >
+                            Save Notes
+                        </Button>
                     </Card.Content>
                 </Card>
 
@@ -348,6 +394,21 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 12,
         borderWidth: 1,
+    },
+    notesHelp: {
+        fontSize: 12,
+        color: '#64748B',
+        marginBottom: 10,
+        marginTop: -5,
+    },
+    notesInput: {
+        backgroundColor: '#fff',
+        marginBottom: 12,
+        fontSize: 14,
+    },
+    saveNotesBtn: {
+        borderRadius: 8,
+        backgroundColor: '#1A5F7A',
     }
 });
 

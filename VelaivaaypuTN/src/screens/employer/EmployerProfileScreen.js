@@ -3,9 +3,12 @@ import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, To
 import { TextInput, Button, Title, Avatar, Appbar, Text, useTheme, Card, List, Switch, Divider, IconButton, Paragraph } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../../api/authApi';
+import { getEmployerStats } from '../../api/jobApi';
 import { loadUser, logoutUser } from '../../redux/authSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import { theme } from '../../theme';
 import VerifiedBadge from '../../components/common/VerifiedBadge';
 
@@ -16,6 +19,7 @@ const EmployerProfileScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [stats, setStats] = useState(null);
 
     const [form, setForm] = useState({
         name: '',
@@ -23,6 +27,10 @@ const EmployerProfileScreen = ({ navigation }) => {
         bio: '',
         phone: '',
         location: '',
+        website: '',
+        linkedin: '',
+        twitter: '',
+        headerImage: '',
     });
 
     const onRefresh = async () => {
@@ -36,6 +44,19 @@ const EmployerProfileScreen = ({ navigation }) => {
         }
     };
 
+    const fetchData = async () => {
+        try {
+            const statsData = await getEmployerStats();
+            setStats(statsData);
+        } catch (error) {
+            console.error('Stats fetch error:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     useEffect(() => {
         if (user) {
             setForm({
@@ -44,6 +65,10 @@ const EmployerProfileScreen = ({ navigation }) => {
                 bio: user.bio || '',
                 phone: user.phone || '',
                 location: user.location || '',
+                website: user.website || '',
+                linkedin: user.linkedin || '',
+                twitter: user.twitter || '',
+                headerImage: user.headerImage || '',
             });
         }
     }, [user]);
@@ -97,33 +122,47 @@ const EmployerProfileScreen = ({ navigation }) => {
                     contentContainerStyle={styles.scroll}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1A5F7A']} />}
                 >
-                    {/* Header / Branding */}
-                    <View style={styles.header}>
-                        <View style={styles.avatarWrapper}>
-                            <Avatar.Text
-                                size={110}
-                                label={user?.companyName ? user.companyName.substring(0, 1).toUpperCase() : 'C'}
-                                style={{ backgroundColor: '#1A5F7A' }}
-                                labelStyle={{ fontWeight: '800' }}
+                    {/* Premium Header / Branding */}
+                    <View style={styles.brandingWrapper}>
+                        {form.headerImage ? (
+                            <Image source={{ uri: form.headerImage }} style={styles.headerImg} />
+                        ) : (
+                            <LinearGradient
+                                colors={['#1A5F7A', '#159895']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={styles.headerGradient}
                             />
-                            {isEditing && (
-                                <TouchableOpacity style={styles.editAvatarBtn}>
-                                    <Icon name="camera" size={20} color="#fff" />
-                                </TouchableOpacity>
-                            )}
+                        )}
+                        <View style={styles.profileSection}>
+                            <View style={styles.avatarWrapper}>
+                                <Avatar.Text
+                                    size={100}
+                                    label={user?.companyName ? user.companyName.substring(0, 1).toUpperCase() : 'C'}
+                                    style={{ backgroundColor: '#fff', elevation: 4 }}
+                                    labelStyle={{ fontWeight: '800', color: '#1A5F7A' }}
+                                />
+                                {isEditing && (
+                                    <TouchableOpacity style={styles.editAvatarBtn}>
+                                        <Icon name="camera" size={20} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                            <View style={styles.titlesBox}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Title style={styles.companyTitle}>{user?.companyName || 'Set Company Name'}</Title>
+                                    {user?.isVerified && <VerifiedBadge size={22} style={{ marginLeft: 8, marginTop: 4 }} />}
+                                </View>
+                                <Text style={styles.adminName}>Recruiting with VelaivaaypuTN</Text>
+                            </View>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Title style={styles.companyTitle}>{user?.companyName || 'Set Company Name'}</Title>
-                            {user?.isVerified && <VerifiedBadge size={22} style={{ marginLeft: 8, marginTop: 4 }} />}
-                        </View>
-                        <Text style={styles.adminName}>Managed by {user?.name}</Text>
                     </View>
 
                     {/* Hiring Stats Dashboard */}
                     <View style={styles.statsRow}>
-                        <StatItem label="Total Jobs" value="12" icon="briefcase-check" color="#1A5F7A" />
-                        <StatItem label="Active" value="5" icon="flash" color="#10B981" />
-                        <StatItem label="Total Apps" value="148" icon="account-group" color="#F59E0B" />
+                        <StatItem label="Total Jobs" value={stats?.totals?.jobs || '0'} icon="briefcase-check" color="#1A5F7A" />
+                        <StatItem label="Total Views" value={stats?.totals?.views || '0'} icon="eye-outline" color="#10B981" />
+                        <StatItem label="Total Apps" value={stats?.totals?.applications || '0'} icon="account-group" color="#F59E0B" />
                     </View>
 
                     {isEditing ? (
@@ -170,6 +209,34 @@ const EmployerProfileScreen = ({ navigation }) => {
                             />
 
                             <TextInput
+                                label="Website URL"
+                                value={form.website}
+                                onChangeText={(val) => handleChange('website', val)}
+                                mode="outlined"
+                                style={styles.input}
+                                outlineStyle={{ borderRadius: 16 }}
+                                placeholder="https://company.com"
+                            />
+
+                            <TextInput
+                                label="LinkedIn URL"
+                                value={form.linkedin}
+                                onChangeText={(val) => handleChange('linkedin', val)}
+                                mode="outlined"
+                                style={styles.input}
+                                outlineStyle={{ borderRadius: 16 }}
+                            />
+
+                            <TextInput
+                                label="Twitter (X) URL"
+                                value={form.twitter}
+                                onChangeText={(val) => handleChange('twitter', val)}
+                                mode="outlined"
+                                style={styles.input}
+                                outlineStyle={{ borderRadius: 16 }}
+                            />
+
+                            <TextInput
                                 label="Headquarters Location"
                                 value={form.location}
                                 onChangeText={(val) => handleChange('location', val)}
@@ -185,6 +252,31 @@ const EmployerProfileScreen = ({ navigation }) => {
                         </View>
                     ) : (
                         <View style={styles.viewContainer}>
+                            {/* Social Links Bar */}
+                            <View style={styles.socialBar}>
+                                <IconButton
+                                    icon="earth"
+                                    iconColor={user?.website ? '#1A5F7A' : '#CBD5E1'}
+                                    size={24}
+                                    style={styles.socialBtn}
+                                    onPress={() => user?.website && Linking.openURL(user.website)}
+                                />
+                                <IconButton
+                                    icon="linkedin"
+                                    iconColor={user?.linkedin ? '#0A66C2' : '#CBD5E1'}
+                                    size={24}
+                                    style={styles.socialBtn}
+                                    onPress={() => user?.linkedin && Linking.openURL(user.linkedin)}
+                                />
+                                <IconButton
+                                    icon="twitter"
+                                    iconColor={user?.twitter ? '#1DA1F2' : '#CBD5E1'}
+                                    size={24}
+                                    style={styles.socialBtn}
+                                    onPress={() => user?.twitter && Linking.openURL(user.twitter)}
+                                />
+                            </View>
+
                             {/* Company Description */}
                             <Card style={styles.card}>
                                 <Card.Content>
@@ -267,7 +359,45 @@ const styles = StyleSheet.create({
     listSection: { marginTop: 0 },
     listSubheader: { fontSize: 14, fontWeight: '800', color: '#94A3B8', letterSpacing: 1, paddingLeft: 0 },
     listItem: { paddingLeft: 0, paddingVertical: 12 },
-    fullDivider: { marginVertical: 8, backgroundColor: '#F1F5F9' }
+    fullDivider: { marginVertical: 8, backgroundColor: '#F1F5F9' },
+    brandingWrapper: {
+        height: 220,
+        backgroundColor: '#F8FAFC',
+        marginBottom: 80,
+    },
+    headerImg: {
+        width: '100%',
+        height: 160,
+    },
+    headerGradient: {
+        width: '100%',
+        height: 160,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+    },
+    profileSection: {
+        position: 'absolute',
+        bottom: -60,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+    },
+    titlesBox: {
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    socialBar: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginBottom: 20,
+        gap: 10,
+    },
+    socialBtn: {
+        backgroundColor: '#F8FAFC',
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+        margin: 0,
+    }
 });
 
 export default EmployerProfileScreen;

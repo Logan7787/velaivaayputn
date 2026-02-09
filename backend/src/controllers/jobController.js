@@ -213,7 +213,7 @@ const getJobApplications = async (req, res) => {
 const updateApplicationStatus = async (req, res) => {
     try {
         const { applicationId } = req.params;
-        const { status } = req.body;
+        const { status, notes } = req.body;
 
         // Find application
         const application = await prisma.contact.findUnique({
@@ -228,15 +228,80 @@ const updateApplicationStatus = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized to update this application' });
         }
 
+        const data = {};
+        if (status) data.status = status;
+        if (notes !== undefined) data.notes = notes;
+
         const updated = await prisma.contact.update({
             where: { id: applicationId },
-            data: { status }
+            data
         });
 
         res.json({ message: 'Status updated successfully', application: updated });
     } catch (error) {
         console.error('Update application status error:', error);
         res.status(500).json({ error: 'Failed to update status' });
+    }
+};
+
+const getEmployerStats = async (req, res) => {
+    try {
+        const employerId = req.user.id;
+
+        // 1. Get Pipeline Stats
+        const pipelineStats = await prisma.contact.groupBy({
+            by: ['status'],
+            where: {
+                job: { employerId }
+            },
+            _count: true
+        });
+
+        // 2. Get 7-Day Application Trends
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const trends = await prisma.contact.findMany({
+            where: {
+                job: { employerId },
+                createdAt: { gte: sevenDaysAgo }
+            },
+            select: { createdAt: true }
+        });
+
+        // Format trends into day counts
+        const dailyTrends = Array.from({ length: 7 }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateString = date.toISOString().split('T')[0];
+            const count = trends.filter(t => t.createdAt.toISOString().split('T')[0] === dateString).length;
+            return { date: dateString, count };
+        }).reverse();
+
+        // 3. Get Total Views and Jobs
+        const jobsData = await prisma.job.aggregate({
+            where: { employerId },
+            _sum: {
+                views: true,
+                applicationCount: true
+            },
+            _count: {
+                id: true
+            }
+        });
+
+        res.json({
+            pipeline: pipelineStats.reduce((acc, curr) => ({ ...acc, [curr.status]: curr._count }), {}),
+            trends: dailyTrends,
+            totals: {
+                jobs: jobsData._count.id,
+                views: jobsData._sum.views || 0,
+                applications: jobsData._sum.applicationCount || 0
+            }
+        });
+    } catch (error) {
+        console.error('Employer Stats Error:', error);
+        res.status(500).json({ error: 'Failed to fetch statistics' });
     }
 };
 
@@ -247,5 +312,6 @@ module.exports = {
     getMyJobs,
     applyForJob,
     getJobApplications,
-    updateApplicationStatus
+    updateApplicationStatus,
+    getEmployerStats
 };

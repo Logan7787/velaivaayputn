@@ -6,6 +6,7 @@ const checkRole = require('../middleware/roleCheck'); // We need to create this
 const router = express.Router();
 
 // Protected routes
+router.get('/stats', authMiddleware, checkRole('EMPLOYER', 'ADMIN'), require('../controllers/jobController').getEmployerStats);
 router.get('/my/jobs', authMiddleware, checkRole('EMPLOYER', 'ADMIN'), getMyJobs);
 router.post('/', authMiddleware, checkRole('EMPLOYER', 'ADMIN'), createJob);
 router.post('/:id/apply', authMiddleware, checkRole('JOBSEEKER'), require('../controllers/jobController').applyForJob);

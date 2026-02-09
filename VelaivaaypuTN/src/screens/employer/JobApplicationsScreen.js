@@ -105,7 +105,8 @@ const JobApplicationsScreen = ({ route, navigation }) => {
                     message: item.message,
                     jobId,
                     applicationId: item.id,
-                    currentStatus: item.status || 'PENDING'
+                    currentStatus: item.status || 'PENDING',
+                    notes: item.notes || ''
                 })}
                 style={styles.viewProfileBtn}
                 labelStyle={{ fontSize: 13, fontWeight: 'bold', color: '#1A5F7A' }}

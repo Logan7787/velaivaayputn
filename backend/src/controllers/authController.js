@@ -115,7 +115,7 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { name, bio, skills, experience, companyName, location, phone } = req.body;
+        const { name, bio, skills, experience, companyName, location, phone, website, linkedin, twitter, headerImage } = req.body;
 
         const updatedUser = await prisma.user.update({
             where: { id: req.user.id },
@@ -124,6 +124,10 @@ const updateProfile = async (req, res) => {
                 bio,
                 phone,
                 location,
+                website,
+                linkedin,
+                twitter,
+                headerImage,
                 companyName: req.user.role === 'EMPLOYER' ? companyName : undefined,
                 experience: experience ? parseInt(experience) : undefined,
                 skills: typeof skills === 'string' ? skills.split(',').map(s => s.trim()) : skills
