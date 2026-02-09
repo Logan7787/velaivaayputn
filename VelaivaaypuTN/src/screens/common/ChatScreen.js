@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import { GiftedChat, Bubble, Send } from 'react-native-gifted-chat';
+import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
 import { io } from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
 import { getChatMessages } from '../../api/chatApi';
 import { receiveMessage } from '../../redux/chatSlice';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Use a consistent Socket URL
 const SOCKET_URL = 'https://velaivaayputn.onrender.com';
@@ -31,9 +32,14 @@ const ChatScreen = ({ route, navigation }) => {
         const newSocket = io(SOCKET_URL);
         setSocket(newSocket);
 
+        newSocket.on('connect', () => console.log('[Socket] Connected to server'));
+        newSocket.on('connect_error', (err) => console.error('[Socket] Connection Error:', err.message));
+
         newSocket.emit('join_chat', chatId);
+        console.log('[Socket] Joining chat:', chatId);
 
         newSocket.on('receive_message', (msg) => {
+            console.log('[Socket] Received new message:', msg.id);
             const giftedMessage = {
                 _id: msg.id,
                 text: msg.content,
@@ -58,7 +64,9 @@ const ChatScreen = ({ route, navigation }) => {
 
     const fetchHistory = async () => {
         try {
+            console.log('[Chat] Fetching history for:', chatId);
             const history = await getChatMessages(chatId);
+            console.log('[Chat] History received, count:', history.length);
             const formatted = history.map(msg => ({
                 _id: msg.id,
                 text: msg.content,
@@ -112,27 +120,42 @@ const ChatScreen = ({ route, navigation }) => {
     );
 
     if (loading) {
-        return <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>;
+        return (
+            <View style={[styles.center, { backgroundColor: '#fff' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
     }
 
+    if (!user) return null;
+
     return (
-        <View style={styles.container}>
-            <GiftedChat
-                messages={messages}
-                onSend={messages => onSend(messages)}
-                user={{
-                    _id: user.id,
-                    name: user.name,
-                }}
-                renderBubble={renderBubble}
-                renderSend={renderSend}
-                placeholder="Type a message..."
-                showUserAvatar
-                alwaysShowSend
-                scrollToBottom
-                infiniteScroll
-            />
-        </View>
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+            <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+                <GiftedChat
+                    messages={messages}
+                    onSend={messages => onSend(messages)}
+                    user={{
+                        _id: user.id,
+                        name: user.name,
+                    }}
+                    renderBubble={renderBubble}
+                    renderSend={renderSend}
+                    placeholder="Type a message..."
+                    showUserAvatar
+                    alwaysShowSend
+                    scrollToBottom
+                    infiniteScroll
+                    renderUsernameOnMessage
+                    renderInputToolbar={(props) => (
+                        <InputToolbar
+                            {...props}
+                            containerStyle={styles.inputToolbar}
+                        />
+                    )}
+                />
+            </View>
+        </SafeAreaView>
     );
 };
 
@@ -149,6 +172,13 @@ const styles = StyleSheet.create({
     sendButton: {
         marginRight: 10,
         marginBottom: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    inputToolbar: {
+        borderTopWidth: 1,
+        borderTopColor: '#E2E8F0',
+        paddingTop: 5,
     }
 });
 

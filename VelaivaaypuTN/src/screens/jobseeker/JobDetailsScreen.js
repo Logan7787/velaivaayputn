@@ -3,13 +3,15 @@ import { View, StyleSheet, ScrollView, Alert, Linking, Platform, StatusBar } fro
 import { Title, Text, Button, Card, Paragraph, Chip, Divider, ActivityIndicator, Avatar, useTheme, IconButton, Surface } from 'react-native-paper';
 import { getJobById, applyForJob } from '../../api/jobApi';
 import { initiateChat } from '../../api/chatApi';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { showToast } from '../../redux/uiSlice';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const JobDetailsScreen = ({ route, navigation }) => {
     const { jobId } = route.params;
     const { colors } = useTheme();
+    const dispatch = useDispatch();
     const { user } = useSelector(state => state.auth);
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ const JobDetailsScreen = ({ route, navigation }) => {
                 const data = await getJobById(jobId);
                 setJob(data);
             } catch (error) {
-                Alert.alert('Error', 'Failed to load job details');
+                dispatch(showToast({ message: 'Failed to load job details', type: 'error' }));
                 navigation.goBack();
             } finally {
                 setLoading(false);
@@ -49,12 +51,10 @@ const JobDetailsScreen = ({ route, navigation }) => {
         setApplying(true);
         try {
             await applyForJob(jobId, `I am interested in this ${job.title} position.`);
-            Alert.alert('Success', 'Application Submitted Successfully!', [
-                { text: 'OK' }
-            ]);
+            dispatch(showToast({ message: 'Application Submitted Successfully!', type: 'success' }));
         } catch (error) {
             const msg = error.response?.data?.error || 'Failed to apply';
-            Alert.alert('Application Failed', msg);
+            dispatch(showToast({ message: msg, type: 'error' }));
         } finally {
             setApplying(false);
         }
@@ -76,7 +76,7 @@ const JobDetailsScreen = ({ route, navigation }) => {
                 otherUser: { name: job.companyName }
             });
         } catch (error) {
-            Alert.alert('Error', 'Failed to start chat');
+            dispatch(showToast({ message: 'Failed to start chat', type: 'error' }));
         }
     };
 
