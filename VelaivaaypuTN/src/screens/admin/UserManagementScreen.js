@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, Alert, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
-import { Title, Text, Card, Avatar, Button, Switch, ActivityIndicator, Searchbar, Appbar, Chip, useTheme, IconButton, Menu, Divider } from 'react-native-paper';
+import { Title, Text, Card, Avatar, Button, Switch, ActivityIndicator, Searchbar, Appbar, Chip, useTheme, IconButton, Menu, Divider, Surface } from 'react-native-paper';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import api from '../../api/axios.config';
+import { getAllUsers, toggleUserStatus } from '../../api/adminApi';
+import { useDispatch } from 'react-redux';
+import { showToast } from '../../redux/uiSlice';
 
 const UserManagementScreen = ({ navigation }) => {
     const { colors } = useTheme();
     const insets = useSafeAreaInsets();
+    const dispatch = useDispatch();
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,15 +24,14 @@ const UserManagementScreen = ({ navigation }) => {
     useEffect(() => {
         let result = users;
 
-        // Search Filter
         if (searchQuery) {
             result = result.filter(u =>
                 u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                u.email.toLowerCase().includes(searchQuery.toLowerCase())
+                u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (u.companyName && u.companyName.toLowerCase().includes(searchQuery.toLowerCase()))
             );
         }
 
-        // Role Filter
         if (filterRole !== 'ALL') {
             result = result.filter(u => u.role === filterRole);
         }
@@ -39,219 +41,201 @@ const UserManagementScreen = ({ navigation }) => {
 
     const fetchUsers = async () => {
         try {
-            const { data } = await api.get('/admin/users');
+            const data = await getAllUsers();
             setUsers(data);
             setFilteredUsers(data);
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'Failed to fetch users');
+            console.error('Fetch Users Error:', error);
+            dispatch(showToast({ message: 'Failed to fetch users', type: 'error' }));
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleStatus = async (userId, currentStatus) => {
+    const handleToggleStatus = async (userId, currentStatus) => {
         try {
-            await api.post('/admin/user-status', { userId });
-            const updatedUsers = users.map(u => u.id === userId ? { ...u, isActive: !currentStatus } : u);
-            setUsers(updatedUsers);
+            await toggleUserStatus(userId);
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, isActive: !currentStatus } : u));
+            dispatch(showToast({
+                message: `User ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+                type: 'success'
+            }));
         } catch (error) {
-            Alert.alert('Error', 'Failed to update user status');
+            dispatch(showToast({ message: 'Failed to update user status', type: 'error' }));
         }
     };
 
-    const totalUsers = users.length;
-    const activeUsers = users.filter(u => u.isActive).length;
-    const bannedUsers = totalUsers - activeUsers;
+    const stats = {
+        total: users.length,
+        active: users.filter(u => u.isActive).length,
+        banned: users.length - users.filter(u => u.isActive).length,
+    };
 
     const renderItem = ({ item }) => (
-        <Card style={styles.userCard} onPress={() => { }}>
-            <Card.Content style={styles.cardContent}>
+        <Surface style={styles.userCard} elevation={1}>
+            <View style={styles.cardMain}>
+                <Avatar.Text
+                    size={48}
+                    label={item.name.substring(0, 2).toUpperCase()}
+                    style={{ backgroundColor: item.role === 'EMPLOYER' ? '#0EA5E9' : '#8B5CF6' }}
+                    labelStyle={{ fontWeight: 'bold', fontSize: 18 }}
+                />
                 <View style={styles.userInfo}>
-                    <Avatar.Text
-                        size={50}
-                        label={item.name.substring(0, 2).toUpperCase()}
-                        style={{ backgroundColor: item.role === 'EMPLOYER' ? colors.secondary : '#5C6BC0', elevation: 2 }}
-                        labelStyle={{ fontWeight: 'bold' }}
-                    />
-                    <View style={styles.textContainer}>
+                    <View style={styles.nameRow}>
                         <Title style={styles.userName}>{item.name}</Title>
-                        <Text style={styles.userEmail}>{item.email}</Text>
-                        <View style={styles.metaRow}>
-                            <View style={[styles.roleBadge, { backgroundColor: item.role === 'EMPLOYER' ? '#E0F2F1' : '#E8EAF6' }]}>
-                                <Icon name={item.role === 'EMPLOYER' ? 'briefcase' : 'account'} size={12} color={item.role === 'EMPLOYER' ? '#00695C' : '#283593'} />
-                                <Text style={[styles.roleText, { color: item.role === 'EMPLOYER' ? '#00695C' : '#283593' }]}>
-                                    {item.role}
-                                </Text>
-                            </View>
-                            <Text style={styles.dateText}>Joined {new Date(item.createdAt).toLocaleDateString()}</Text>
+                        {item.isVerified && (
+                            <Icon name="check-decagram" size={16} color="#0EA5E9" style={{ marginLeft: 4 }} />
+                        )}
+                    </View>
+                    <Text style={styles.userEmail}>{item.email}</Text>
+                    {item.companyName && <Text style={styles.companyText}>{item.companyName}</Text>}
+
+                    <View style={styles.badgeRow}>
+                        <View style={[styles.roleBadge, { backgroundColor: item.role === 'EMPLOYER' ? '#E0F2FE' : '#F5F3FF' }]}>
+                            <Text style={[styles.roleText, { color: item.role === 'EMPLOYER' ? '#0369A1' : '#6D28D9' }]}>
+                                {item.role}
+                            </Text>
                         </View>
+                        <Text style={styles.dateText}>Joined {new Date(item.createdAt).toLocaleDateString()}</Text>
                     </View>
                 </View>
 
-                <View style={styles.actionContainer}>
+                <View style={styles.actionCol}>
                     <Switch
                         value={item.isActive}
-                        onValueChange={() => toggleStatus(item.id, item.isActive)}
-                        color={colors.primary}
+                        onValueChange={() => handleToggleStatus(item.id, item.isActive)}
+                        color="#1A5F7A"
                         style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                     />
-                    <Text style={[styles.statusText, { color: item.isActive ? '#4CAF50' : '#F44336' }]}>
+                    <Text style={[styles.statusIndicator, { color: item.isActive ? '#10B981' : '#EF4444' }]}>
                         {item.isActive ? 'Active' : 'Banned'}
                     </Text>
                 </View>
-            </Card.Content>
-        </Card>
+            </View>
+        </Surface>
     );
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#1A5F7A" />
 
             {/* Premium Header */}
-            <View style={[styles.header, { backgroundColor: colors.primary }]}>
+            <View style={[styles.header, { backgroundColor: '#1A5F7A' }]}>
                 <View style={styles.headerTop}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <Icon name="arrow-left" size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <Title style={styles.headerTitle}>User Management</Title>
-                    <IconButton icon="dots-vertical" iconColor="#fff" size={24} onPress={() => { }} />
+                    <IconButton icon="arrow-left" iconColor="#fff" size={24} onPress={() => navigation.goBack()} />
+                    <Title style={styles.headerTitle}>User Directory</Title>
+                    <IconButton icon="tune-variant" iconColor="#fff" size={24} onPress={() => { }} />
                 </View>
 
-                {/* Search Bar in Header */}
                 <Searchbar
-                    placeholder="Search users by name or email..."
+                    placeholder="Search name, email, or company..."
                     onChangeText={setSearchQuery}
                     value={searchQuery}
                     style={styles.searchBar}
                     inputStyle={{ fontSize: 14 }}
-                    iconColor={colors.primary}
-                    elevation={2}
+                    placeholderTextColor="#94A3B8"
+                    iconColor="#1A5F7A"
+                    elevation={0}
                 />
             </View>
 
-            {/* Content Listing */}
-            <View style={styles.contentContainer}>
-                {/* Quick Filter Tabs */}
-                <View style={styles.filterRow}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-                        {['ALL', 'JOBSEEKER', 'EMPLOYER'].map(role => (
-                            <TouchableOpacity
-                                key={role}
-                                style={[styles.filterChip, filterRole === role && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-                                onPress={() => setFilterRole(role)}
-                            >
-                                <Text style={[styles.filterText, filterRole === role && { color: '#fff' }]}>
-                                    {role === 'ALL' ? 'All Users' : role === 'JOBSEEKER' ? 'Job Seekers' : 'Employers'}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* Summary Stats Row */}
-                <View style={styles.statsRow}>
-                    <Text style={styles.statsText}>
-                        Total: <Text style={{ fontWeight: 'bold' }}>{filteredUsers.length}</Text>
-                    </Text>
-                    <View style={{ flexDirection: 'row' }}>
-                        <View style={styles.dotItem}>
-                            <View style={[styles.dot, { backgroundColor: '#4CAF50' }]} />
-                            <Text style={styles.dotText}>{activeUsers} Active</Text>
-                        </View>
-                        <View style={[styles.dotItem, { marginLeft: 10 }]}>
-                            <View style={[styles.dot, { backgroundColor: '#F44336' }]} />
-                            <Text style={styles.dotText}>{bannedUsers} Banned</Text>
-                        </View>
+            {/* Statistics Row */}
+            <View style={styles.statsRow}>
+                <Text style={styles.statsSummary}>Showing {filteredUsers.length} users</Text>
+                <View style={styles.dotGroup}>
+                    <View style={styles.dotItem}>
+                        <View style={[styles.dot, { backgroundColor: '#10B981' }]} />
+                        <Text style={styles.dotText}>{stats.active} Active</Text>
+                    </View>
+                    <View style={[styles.dotItem, { marginLeft: 12 }]}>
+                        <View style={[styles.dot, { backgroundColor: '#EF4444' }]} />
+                        <Text style={styles.dotText}>{stats.banned} Banned</Text>
                     </View>
                 </View>
-
-                {loading ? (
-                    <View style={styles.center}><ActivityIndicator size="large" color={colors.primary} /></View>
-                ) : (
-                    <FlatList
-                        data={filteredUsers}
-                        renderItem={renderItem}
-                        keyExtractor={item => item.id}
-                        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
-                        showsVerticalScrollIndicator={false}
-                        ListEmptyComponent={
-                            <View style={styles.emptyState}>
-                                <Icon name="account-search-outline" size={60} color="#ddd" />
-                                <Text style={{ color: '#888', marginTop: 15, fontSize: 16 }}>No users found matching filters.</Text>
-                            </View>
-                        }
-                    />
-                )}
             </View>
-        </View>
+
+            {/* Role Filter Tabs */}
+            <View style={styles.filterTabs}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+                    {['ALL', 'JOBSEEKER', 'EMPLOYER'].map(role => (
+                        <TouchableOpacity
+                            key={role}
+                            style={[styles.tab, filterRole === role && styles.activeTab]}
+                            onPress={() => setFilterRole(role)}
+                        >
+                            <Text style={[styles.tabText, filterRole === role && styles.activeTabText]}>
+                                {role === 'ALL' ? 'Total Base' : role === 'JOBSEEKER' ? 'Job Seekers' : 'Employers'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
+            {loading ? (
+                <View style={styles.center}><ActivityIndicator size="large" color="#1A5F7A" /></View>
+            ) : (
+                <FlatList
+                    data={filteredUsers}
+                    renderItem={renderItem}
+                    keyExtractor={item => item.id}
+                    contentContainerStyle={styles.list}
+                    showsVerticalScrollIndicator={false}
+                    ListEmptyComponent={
+                        <View style={styles.emptyState}>
+                            <Icon name="account-search-outline" size={64} color="#CBD5E1" />
+                            <Text style={styles.emptyText}>No users found matching your filters.</Text>
+                            <Button mode="text" labelStyle={{ color: '#1A5F7A' }} onPress={() => { setSearchQuery(''); setFilterRole('ALL'); }}>Clear Filters</Button>
+                        </View>
+                    }
+                />
+            )}
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F7FA'
+        backgroundColor: '#F8FAFC'
     },
     header: {
-        paddingTop: 10,
-        paddingBottom: 25,
-        paddingHorizontal: 20,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-        elevation: 6,
-        zIndex: 10,
+        paddingBottom: 20,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        elevation: 8,
     },
     headerTop: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 15,
+        paddingRight: 8,
     },
     headerTitle: {
+        flex: 1,
         fontSize: 20,
         fontWeight: 'bold',
         color: '#fff',
     },
     searchBar: {
-        elevation: 0,
+        marginHorizontal: 16,
+        marginTop: 8,
+        borderRadius: 16,
         backgroundColor: '#fff',
-        borderRadius: 12,
-        height: 46,
-    },
-    contentContainer: {
-        flex: 1,
-        marginTop: 10,
-    },
-    filterRow: {
-        marginBottom: 10,
-        height: 40,
-    },
-    filterChip: {
-        paddingHorizontal: 16,
-        paddingVertical: 6,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        marginRight: 10,
-        justifyContent: 'center',
-    },
-    filterText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#666',
+        height: 48,
     },
     statsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: 20,
-        marginBottom: 10,
+        marginTop: 20,
+        alignItems: 'center',
     },
-    statsText: {
-        color: '#666',
-        fontSize: 14,
+    statsSummary: {
+        color: '#64748B',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    dotGroup: {
+        flexDirection: 'row',
     },
     dotItem: {
         flexDirection: 'row',
@@ -261,11 +245,37 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        marginRight: 4,
+        marginRight: 6,
     },
     dotText: {
         fontSize: 12,
-        color: '#777',
+        color: '#475569',
+        fontWeight: '500',
+    },
+    filterTabs: {
+        marginVertical: 16,
+        height: 40,
+    },
+    tab: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 12,
+        marginRight: 8,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    activeTab: {
+        backgroundColor: '#1E293B',
+        borderColor: '#1E293B',
+    },
+    tabText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#64748B',
+    },
+    activeTabText: {
+        color: '#fff',
     },
     center: {
         flex: 1,
@@ -274,77 +284,83 @@ const styles = StyleSheet.create({
     },
     list: {
         padding: 16,
-        paddingTop: 5,
+        paddingTop: 0,
+        paddingBottom: 40,
     },
     userCard: {
-        marginBottom: 14,
-        borderRadius: 16,
         backgroundColor: '#fff',
-        elevation: 2,
-        borderWidth: 1,
-        borderColor: '#F0F0F0'
+        borderRadius: 24,
+        padding: 16,
+        marginBottom: 12,
     },
-    cardContent: {
+    cardMain: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
     },
     userInfo: {
+        flex: 1,
+        marginLeft: 16,
+    },
+    nameRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1
-    },
-    textContainer: {
-        marginLeft: 14,
-        flex: 1
     },
     userName: {
         fontSize: 16,
         fontWeight: 'bold',
-        lineHeight: 20,
-        color: '#333'
+        color: '#1E293B',
     },
     userEmail: {
-        fontSize: 13,
-        color: '#777',
-        marginBottom: 6
+        fontSize: 12,
+        color: '#64748B',
+        marginTop: -4,
     },
-    metaRow: {
+    companyText: {
+        fontSize: 12,
+        color: '#475569',
+        fontStyle: 'italic',
+        marginTop: 2,
+    },
+    badgeRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginTop: 8,
     },
     roleBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderRadius: 6,
-        marginRight: 10,
+        marginRight: 8,
     },
     roleText: {
         fontSize: 10,
         fontWeight: 'bold',
-        marginLeft: 4,
     },
     dateText: {
-        fontSize: 11,
-        color: '#999'
-    },
-    actionContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingLeft: 8
-    },
-    statusText: {
         fontSize: 10,
-        fontWeight: 'bold',
-        marginTop: 4,
+        color: '#94A3B8',
+    },
+    actionCol: {
+        alignItems: 'center',
+        paddingLeft: 8,
+    },
+    statusIndicator: {
+        fontSize: 10,
+        fontWeight: '900',
+        marginTop: -4,
+        textTransform: 'uppercase',
     },
     emptyState: {
         alignItems: 'center',
-        marginTop: 60
+        justifyContent: 'center',
+        marginTop: 60,
+    },
+    emptyText: {
+        color: '#64748B',
+        marginTop: 16,
+        fontSize: 14,
+        textAlign: 'center',
+        paddingHorizontal: 40,
     }
 });
 
