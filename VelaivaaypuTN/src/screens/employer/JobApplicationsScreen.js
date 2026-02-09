@@ -69,7 +69,7 @@ const JobApplicationsScreen = ({ route, navigation }) => {
 
             <Button
                 mode="outlined"
-                onPress={() => navigation.navigate('ApplicantDetails', { applicant: item.jobSeeker, message: item.message })}
+                onPress={() => navigation.navigate('ApplicantDetails', { applicant: item.jobSeeker, message: item.message, jobId })}
                 style={styles.viewProfileBtn}
                 labelStyle={{ fontSize: 13, fontWeight: 'bold', color: '#1A5F7A' }}
                 contentStyle={{ height: 40 }}

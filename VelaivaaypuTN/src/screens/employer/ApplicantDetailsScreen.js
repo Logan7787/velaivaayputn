@@ -3,12 +3,16 @@ import { View, StyleSheet, ScrollView, Linking, Dimensions, StatusBar, Touchable
 import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { initiateChat } from '../../api/chatApi';
+import { useDispatch } from 'react-redux';
+import { showToast } from '../../redux/uiSlice';
 
 const { width } = Dimensions.get('window');
 
 const ApplicantDetailsScreen = ({ route, navigation }) => {
-    const { applicant, message } = route.params;
+    const { applicant, message, jobId } = route.params;
     const theme = useTheme();
+    const dispatch = useDispatch();
     const insets = useSafeAreaInsets();
 
     const handleCall = () => {
@@ -17,6 +21,18 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
 
     const handleEmail = () => {
         Linking.openURL(`mailto:${applicant.email}`);
+    };
+
+    const handleChat = async () => {
+        try {
+            const chat = await initiateChat(jobId, applicant.id);
+            navigation.navigate('Chat', {
+                chatId: chat.id,
+                otherUser: { name: applicant.name }
+            });
+        } catch (error) {
+            dispatch(showToast({ message: 'Failed to start chat', type: 'error' }));
+        }
     };
 
     return (
@@ -144,6 +160,14 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                     textColor={theme.colors.primary}
                 >
                     Email
+                </Button>
+                <Button
+                    mode="contained"
+                    icon="chat"
+                    onPress={handleChat}
+                    style={[styles.actionButton, { backgroundColor: '#1A5F7A' }]}
+                >
+                    Chat
                 </Button>
                 <Button
                     mode="contained"

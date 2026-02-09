@@ -111,14 +111,23 @@ const JobSeekerHomeScreen = ({ navigation }) => {
                         <Text style={styles.greeting}>Hello, {user?.name?.split(' ')[0] || 'Applicant'} 👋</Text>
                         <Text style={styles.headerSubtitle}>Find your dream job today</Text>
                     </View>
-                    <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                        <Avatar.Text
-                            size={44}
-                            label={user?.name ? user.name.substring(0, 2).toUpperCase() : 'US'}
-                            style={{ backgroundColor: '#fff' }}
-                            labelStyle={{ color: '#1A5F7A', fontWeight: 'bold' }}
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <IconButton
+                            icon="message-outline"
+                            iconColor="#fff"
+                            size={24}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.1)', marginRight: 8 }}
+                            onPress={() => navigation.navigate('ChatList')}
                         />
-                    </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+                            <Avatar.Text
+                                size={44}
+                                label={user?.name ? user.name.substring(0, 2).toUpperCase() : 'US'}
+                                style={{ backgroundColor: '#fff' }}
+                                labelStyle={{ color: '#1A5F7A', fontWeight: 'bold' }}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <Searchbar

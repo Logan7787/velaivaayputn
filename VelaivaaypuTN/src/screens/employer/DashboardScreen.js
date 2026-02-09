@@ -61,11 +61,11 @@ const EmployerDashboard = ({ navigation }) => {
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <IconButton
-                            icon="bell-outline"
+                            icon="message-outline"
                             iconColor="#fff"
                             size={24}
                             style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                            onPress={() => { }}
+                            onPress={() => navigation.navigate('ChatList')}
                         />
                         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                             <Avatar.Text
