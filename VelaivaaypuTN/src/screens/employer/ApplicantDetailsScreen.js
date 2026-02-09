@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Linking, Dimensions, StatusBar, TouchableOpacity, TextInput as RNTextInput } from 'react-native';
-import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme, Menu, TextInput } from 'react-native-paper';
+import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme, Menu, TextInput, Paragraph, Title } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { initiateChat } from '../../api/chatApi';
