@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
-import { TextInput, Button, Title, Avatar, Appbar, Text, useTheme, Card, List, Switch, Divider, IconButton } from 'react-native-paper';
+import { TextInput, Button, Title, Avatar, Appbar, Text, useTheme, Card, List, Switch, Divider, IconButton, Paragraph } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../../api/authApi';
 import { loadUser, logoutUser } from '../../redux/authSlice';
