@@ -77,7 +77,8 @@ const SubscriptionScreen = ({ navigation }) => {
                         razorpay_order_id: data.razorpay_order_id,
                         razorpay_payment_id: data.razorpay_payment_id,
                         razorpay_signature: data.razorpay_signature,
-                        tier: selectedPlan.id
+                        tier: selectedPlan.id,
+                        cycle: billingCycle
                     });
 
                     dispatch(showToast({ message: `🎉 Successfully upgraded to ${selectedPlan.name} Plan!`, type: 'success' }));
@@ -164,7 +165,7 @@ const SubscriptionScreen = ({ navigation }) => {
                                 <Text style={[styles.planPrice, { color: colors.primary }]}>
                                     {billingCycle === 'yearly' ? (parseInt(plan.price) * 10) : plan.price}
                                 </Text>
-                                <Text style={styles.period}>/{billingCycle === 'yearly' ? 'mo' : 'mo'}</Text>
+                                <Text style={styles.period}>/{billingCycle === 'yearly' ? 'yr' : 'mo'}</Text>
                             </View>
 
                             <View style={styles.divider} />

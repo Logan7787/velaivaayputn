@@ -5,25 +5,39 @@ const prisma = new PrismaClient();
 
 const PLANS = {
     EMPLOYER: {
-        BASIC: { amount: 49, limit: 15 },
-        STANDARD: { amount: 99, limit: 25 }
+        BASIC: {
+            monthly: { amount: 49, limit: 15 },
+            yearly: { amount: 490, limit: 15 } // 10 months price
+        },
+        STANDARD: {
+            monthly: { amount: 99, limit: 25 },
+            yearly: { amount: 990, limit: 25 }
+        }
     },
     JOBSEEKER: {
-        BASIC: { amount: 49, limit: 15 },
-        STANDARD: { amount: 99, limit: 25 }
+        BASIC: {
+            monthly: { amount: 49, limit: 15 },
+            yearly: { amount: 490, limit: 15 }
+        },
+        STANDARD: {
+            monthly: { amount: 99, limit: 25 },
+            yearly: { amount: 990, limit: 25 }
+        }
     }
 };
 
 const initiateUpgrade = async (req, res) => {
     try {
-        const { tier } = req.body; // 'BASIC' or 'STANDARD'
+        const { tier, cycle } = req.body; // tier: 'BASIC'|'STANDARD', cycle: 'monthly'|'yearly'
         const role = req.user.role;
 
         if (role === 'ADMIN') return res.status(400).json({ error: 'Admins cannot subscribe' });
 
-        const plan = PLANS[role][tier];
+        const tierConfig = PLANS[role][tier];
+        if (!tierConfig) return res.status(400).json({ error: 'Invalid plan tier' });
 
-        if (!plan) return res.status(400).json({ error: 'Invalid plan' });
+        const plan = tierConfig[cycle || 'monthly'];
+        if (!plan) return res.status(400).json({ error: 'Invalid billing cycle' });
 
         // Create Razorpay Order
         const order = await createOrder(plan.amount, 'INR', `sub_${req.user.id.substring(0, 10)}_${Date.now()}`);
@@ -42,7 +56,7 @@ const initiateUpgrade = async (req, res) => {
 
 const verifyUpgrade = async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, tier } = req.body;
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, tier, cycle } = req.body;
 
         const isValid = verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
 
@@ -50,24 +64,27 @@ const verifyUpgrade = async (req, res) => {
             return res.status(400).json({ error: 'Invalid payment signature' });
         }
 
-        // Convert tier string to enum
-        const tierEnum = tier === 'BASIC' ? 'BASIC' : 'STANDARD';
         const role = req.user.role;
-        const plan = PLANS[role][tier];
+        const tierConfig = PLANS[role][tier];
+        const plan = tierConfig[cycle || 'monthly'];
+
+        // Calculate end date based on cycle
+        const durationDays = (cycle === 'yearly') ? 365 : 30;
+        const endDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
 
         // Update Subscription
         const subscription = await prisma.subscription.update({
             where: { userId: req.user.id },
             data: {
-                tier: tierEnum,
+                tier: tier,
                 isActive: true,
                 // Update limits based on role
                 jobPostsLimit: role === 'EMPLOYER' ? plan.limit : 10,
                 contactsLimit: role === 'JOBSEEKER' ? plan.limit : 10,
                 amount: plan.amount,
                 startDate: new Date(),
-                endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-                renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                endDate: endDate,
+                renewalDate: endDate,
                 autoRenew: true
             }
         });

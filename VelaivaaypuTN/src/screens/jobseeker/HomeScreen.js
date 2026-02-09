@@ -7,6 +7,7 @@ import { logoutUser } from '../../redux/authSlice';
 import Skeleton from '../../components/common/Skeleton';
 import { getAllJobs } from '../../api/jobApi';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { theme } from '../../theme';
 
 const JobSeekerHomeScreen = ({ navigation }) => {
     const { colors } = useTheme();
@@ -52,39 +53,39 @@ const JobSeekerHomeScreen = ({ navigation }) => {
             key={job.id}
             style={[styles.jobCard, isFeatured && styles.featuredJobCard]}
             onPress={() => navigation.navigate('JobDetails', { jobId: job.id })}
-            mode={isFeatured ? 'elevated' : 'outlined'}
+            mode={isFeatured ? 'elevated' : 'elevated'}
         >
-            <Card.Content style={{ padding: 16 }}>
+            <Card.Content style={{ padding: 20 }}>
                 <View style={styles.jobHeader}>
-                    <View style={[styles.companyLogo, { backgroundColor: isFeatured ? '#FFF' : '#F5F7FA' }]}>
+                    <View style={[styles.companyLogo, { backgroundColor: isFeatured ? '#FFF' : '#F8FAFC' }]}>
                         {job.companyLogo ? (
                             <Image source={{ uri: job.companyLogo }} style={styles.logoImage} />
                         ) : (
-                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: isFeatured ? colors.primary : '#1A5F7A' }}>
+                            <Text style={{ fontSize: 24, fontWeight: '800', color: isFeatured ? '#1A5F7A' : '#1A5F7A' }}>
                                 {job.companyName?.substring(0, 1) || 'C'}
                             </Text>
                         )}
                     </View>
                     <View style={styles.jobInfo}>
                         <Title style={[styles.jobTitle, isFeatured && { color: '#fff' }]} numberOfLines={1}>{job.title}</Title>
-                        <Text style={[styles.companyName, isFeatured && { color: 'rgba(255,255,255,0.9)' }]}>{job.companyName}</Text>
+                        <Text style={[styles.companyName, isFeatured && { color: 'rgba(255,255,255,0.85)' }]}>{job.companyName}</Text>
                     </View>
-                    {isFeatured && <Icon name="star" size={20} color="#FFD700" />}
+                    {isFeatured && <Icon name="star" size={24} color="#FFD700" />}
                 </View>
 
-                <View style={[styles.divider, isFeatured && { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
+                <View style={[styles.divider, isFeatured && { backgroundColor: 'rgba(255,255,255,0.15)' }]} />
 
                 <View style={styles.metaContainer}>
-                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                        <Icon name="map-marker" size={14} color={isFeatured ? '#fff' : '#7f8c8d'} />
+                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                        <Icon name="map-marker" size={14} color={isFeatured ? '#fff' : '#64748B'} />
                         <Text style={[styles.metaText, isFeatured && { color: '#fff' }]}>{job.location}</Text>
                     </View>
-                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                        <Icon name="clock-outline" size={14} color={isFeatured ? '#fff' : '#7f8c8d'} />
+                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                        <Icon name="clock-outline" size={14} color={isFeatured ? '#fff' : '#64748B'} />
                         <Text style={[styles.metaText, isFeatured && { color: '#fff' }]}>{job.employmentType}</Text>
                     </View>
-                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                        <Icon name="currency-inr" size={14} color={isFeatured ? '#fff' : '#7f8c8d'} />
+                    <View style={[styles.metaItem, isFeatured && { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                        <Icon name="currency-inr" size={14} color={isFeatured ? '#fff' : '#64748B'} />
                         <Text style={[styles.metaText, isFeatured && { color: '#fff' }]}>{job.salary || 'Disclosed'}</Text>
                     </View>
                 </View>
@@ -92,7 +93,7 @@ const JobSeekerHomeScreen = ({ navigation }) => {
                 {!isFeatured && (
                     <View style={styles.footerRow}>
                         <Text style={styles.postedDate}>Posted 2d ago</Text>
-                        <Button mode="text" compact textColor={colors.primary} labelStyle={{ fontWeight: 'bold' }}>View Details</Button>
+                        <Button mode="text" compact textColor={colors.primary} labelStyle={{ fontWeight: '800' }}>View Details</Button>
                     </View>
                 )}
             </Card.Content>
@@ -100,7 +101,7 @@ const JobSeekerHomeScreen = ({ navigation }) => {
     );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: '#F5F7FA' }]} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: '#F8FAFC' }]} edges={['top', 'left', 'right']}>
             <StatusBar barStyle="light-content" backgroundColor="#1A5F7A" />
 
             {/* Premium Header */}
@@ -218,205 +219,205 @@ const styles = StyleSheet.create({
     header: {
         padding: 20,
         paddingTop: 10,
-        paddingBottom: 25,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-        elevation: 4,
+        paddingBottom: 30,
+        borderBottomLeftRadius: 36,
+        borderBottomRightRadius: 36,
+        ...theme.shadows.large,
     },
     headerTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 24,
     },
     greeting: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: 'bold',
         color: '#fff',
+        letterSpacing: -0.5,
     },
     headerSubtitle: {
-        fontSize: 14,
-        color: 'rgba(255,255,255,0.9)',
-        marginTop: 4,
+        fontSize: 15,
+        color: 'rgba(255,255,255,0.85)',
+        marginTop: 2,
     },
     searchBar: {
-        borderRadius: 12,
+        borderRadius: 16,
         backgroundColor: '#fff',
-        height: 48,
+        height: 52,
+        ...theme.shadows.medium,
     },
     searchInput: {
-        fontSize: 14,
-        top: -4,
+        fontSize: 15,
+        top: -2,
     },
     content: {
         flex: 1,
     },
     scrollContent: {
         paddingBottom: 40,
+        paddingTop: 10,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        marginBottom: 12,
+        marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#1E293B',
     },
     categoryScroll: {
         paddingLeft: 20,
-        marginBottom: 5,
+        marginBottom: 8,
     },
     categoryChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        marginRight: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        borderRadius: 16,
+        marginRight: 12,
         borderWidth: 1,
-        elevation: 0,
     },
     activeCategoryChip: {
         backgroundColor: '#1A5F7A',
         borderColor: '#1A5F7A',
+        ...theme.shadows.small,
     },
     inactiveCategoryChip: {
         backgroundColor: '#fff',
-        borderColor: '#E1E8ED',
+        borderColor: '#E2E8F0',
     },
     categoryText: {
-        marginLeft: 8,
-        fontWeight: '600',
+        marginLeft: 10,
+        fontWeight: 'bold',
         color: '#1A5F7A',
+        fontSize: 14,
     },
     featuredScroll: {
         paddingLeft: 20,
-        marginBottom: 10,
+        marginBottom: 15,
     },
     jobCard: {
-        marginTop: 6,
-        marginBottom: 12,
+        marginTop: 4,
+        marginBottom: 20,
         marginHorizontal: 20,
-        borderRadius: 16,
+        borderRadius: 24,
         backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#EEE',
-        elevation: 1,
+        borderWidth: 0,
+        ...theme.shadows.medium,
     },
     featuredJobCard: {
         backgroundColor: '#1A5F7A',
         marginHorizontal: 0,
-        marginBottom: 5,
-        borderWidth: 0,
-        elevation: 4,
+        marginBottom: 8,
+        elevation: 6,
     },
     jobHeader: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
     },
     companyLogo: {
-        width: 50,
-        height: 50,
-        borderRadius: 12,
+        width: 56,
+        height: 56,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 14,
+        marginRight: 16,
     },
     logoImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 12,
+        borderRadius: 16,
     },
     jobInfo: {
         flex: 1,
-        justifyContent: 'center',
     },
     jobTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
+        color: '#1E293B',
+        marginBottom: 2,
     },
     companyName: {
-        fontSize: 13,
-        color: '#666',
+        fontSize: 14,
+        color: '#64748B',
     },
     divider: {
         height: 1,
-        backgroundColor: '#F0F0F0',
-        marginVertical: 12,
+        backgroundColor: '#F1F5F9',
+        marginVertical: 16,
     },
     metaContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 10,
     },
     metaItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F5F7FA',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
+        backgroundColor: '#F1F5F9',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 10,
     },
     metaText: {
-        fontSize: 11,
-        color: '#555',
-        marginLeft: 4,
-        fontWeight: '500',
+        fontSize: 12,
+        color: '#475569',
+        marginLeft: 6,
+        fontWeight: '600',
     },
     footerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#F5F7FA',
+        marginTop: 16,
     },
     postedDate: {
         fontSize: 12,
-        color: '#999',
+        color: '#94A3B8',
     },
     bannerCard: {
         marginHorizontal: 20,
         marginTop: 20,
-        borderRadius: 20,
-        backgroundColor: '#1A5F7A', // Match dashboard logic or use primary
-        marginBottom: 20,
+        borderRadius: 24,
+        backgroundColor: '#1A5F7A',
+        marginBottom: 30,
+        ...theme.shadows.large,
     },
     bannerContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 20,
+        padding: 24,
     },
     bannerIcon: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        padding: 10,
-        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        padding: 12,
+        borderRadius: 16,
     },
     bannerTitle: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
     },
     bannerText: {
-        color: 'rgba(255,255,255,0.8)',
-        fontSize: 12,
-        marginTop: 2,
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 13,
+        marginTop: 4,
     },
     emptyContainer: {
         alignItems: 'center',
-        marginTop: 60,
+        justifyContent: 'center',
+        paddingVertical: 60,
     },
     emptyText: {
-        color: '#999',
-        fontStyle: 'italic',
-        marginLeft: 20,
+        color: '#94A3B8',
+        fontSize: 15,
+        marginTop: 12,
     }
 });
 

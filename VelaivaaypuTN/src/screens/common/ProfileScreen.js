@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform, TouchableOpacity, RefreshControl } from 'react-native';
 import { TextInput, Button, Title, Avatar, Appbar, Text, useTheme, Card, List, Switch, Divider } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile } from '../../api/authApi';
 import { loadUser, logoutUser } from '../../redux/authSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { theme } from '../../theme';
 
 const ProfileScreen = ({ navigation }) => {
     const { colors } = useTheme();
@@ -13,6 +14,7 @@ const ProfileScreen = ({ navigation }) => {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const [form, setForm] = useState({
         name: '',
@@ -23,6 +25,17 @@ const ProfileScreen = ({ navigation }) => {
         skills: '',
         experience: ''
     });
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await dispatch(loadUser()).unwrap();
+        } catch (error) {
+            console.error('Refresh Error:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -73,7 +86,12 @@ const ProfileScreen = ({ navigation }) => {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ flex: 1 }}
             >
-                <ScrollView contentContainerStyle={styles.scroll}>
+                <ScrollView
+                    contentContainerStyle={styles.scroll}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+                    }
+                >
                     {/* Header Section */}
                     <View style={styles.header}>
                         <View style={styles.avatarContainer}>
@@ -104,12 +122,12 @@ const ProfileScreen = ({ navigation }) => {
                                 <Text style={styles.statNumber}>12</Text>
                                 <Text style={styles.statLabel}>Applied</Text>
                             </View>
-                            <View style={styles.divider} />
+                            <View style={styles.dividerVertical} />
                             <View style={styles.statItem}>
                                 <Text style={styles.statNumber}>5</Text>
                                 <Text style={styles.statLabel}>Saved</Text>
                             </View>
-                            <View style={styles.divider} />
+                            <View style={styles.dividerVertical} />
                             <View style={styles.statItem}>
                                 <Text style={styles.statNumber}>2</Text>
                                 <Text style={styles.statLabel}>Interviews</Text>
@@ -231,9 +249,23 @@ const ProfileScreen = ({ navigation }) => {
                                 <List.Subheader>Account</List.Subheader>
                                 <List.Item
                                     title="Subscription Plan"
-                                    description="Free Plan"
-                                    left={props => <List.Icon {...props} icon="crown-outline" color="#FFD700" />}
-                                    right={props => <Button mode="text" onPress={() => navigation.navigate('Subscription')}>Upgrade</Button>}
+                                    description={user?.subscription?.tier ? `${user.subscription.tier.charAt(0) + user.subscription.tier.slice(1).toLowerCase()} Plan` : 'Free Plan'}
+                                    left={props => (
+                                        <List.Icon
+                                            {...props}
+                                            icon={user?.subscription?.tier && user?.subscription?.tier !== 'FREE' ? "crown" : "crown-outline"}
+                                            color={user?.subscription?.tier && user?.subscription?.tier !== 'FREE' ? '#FFD700' : '#888'}
+                                        />
+                                    )}
+                                    right={props => (
+                                        <Button
+                                            mode="text"
+                                            onPress={() => navigation.navigate('Subscription')}
+                                            textColor={colors.primary}
+                                        >
+                                            {user?.subscription?.tier && user?.subscription?.tier !== 'FREE' ? 'Upgrade' : 'Upgrade'}
+                                        </Button>
+                                    )}
                                 />
                                 <List.Item
                                     title="Logout"
@@ -253,98 +285,111 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff'
+        backgroundColor: '#F8FAFC'
     },
     scroll: {
-        paddingBottom: 40
+        paddingBottom: 60
     },
     header: {
         alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#fff'
+        padding: 30,
+        backgroundColor: '#fff',
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+        ...theme.shadows.medium,
+        marginBottom: 24,
     },
     avatarContainer: {
         position: 'relative',
-        marginBottom: 15,
+        marginBottom: 20,
+        ...theme.shadows.medium,
     },
     cameraIcon: {
         position: 'absolute',
         bottom: 0,
         right: 0,
-        backgroundColor: '#000',
-        borderRadius: 15,
-        width: 30,
-        height: 30,
+        backgroundColor: '#1E293B',
+        borderRadius: 18,
+        width: 36,
+        height: 36,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 2,
+        borderWidth: 3,
         borderColor: '#fff'
     },
     name: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#333'
+        fontSize: 26,
+        fontWeight: '800',
+        color: '#1E293B'
     },
     email: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 2
+        fontSize: 15,
+        color: '#64748B',
+        marginTop: 4
     },
     roleBagde: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
         borderRadius: 12,
-        marginTop: 10,
+        marginTop: 16,
+        ...theme.shadows.small,
     },
     statsCard: {
         marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 15,
-        elevation: 3,
-        backgroundColor: '#fff'
+        marginBottom: 32,
+        borderRadius: 24,
+        ...theme.shadows.medium,
+        backgroundColor: '#fff',
+        borderWidth: 0,
     },
     statsContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingVertical: 10
+        paddingVertical: 12
     },
     statItem: {
         flex: 1,
         alignItems: 'center'
     },
     statNumber: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333'
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#1E293B'
     },
     statLabel: {
-        fontSize: 12,
-        color: '#888'
+        fontSize: 13,
+        color: '#64748B',
+        fontWeight: '600',
+        marginTop: 2,
     },
-    divider: {
+    dividerVertical: {
         width: 1,
-        backgroundColor: '#eee',
+        backgroundColor: '#F1F5F9',
         height: '100%'
     },
     menuContainer: {
         paddingHorizontal: 0
     },
     form: {
-        paddingHorizontal: 20
+        paddingHorizontal: 20,
+        paddingBottom: 30,
     },
     sectionTitle: {
         marginBottom: 20,
-        fontSize: 18,
-        fontWeight: 'bold'
+        fontSize: 20,
+        fontWeight: '800',
+        color: '#1E293B'
     },
     input: {
-        marginBottom: 15,
-        backgroundColor: '#fff'
+        marginBottom: 16,
+        backgroundColor: '#fff',
     },
     saveButton: {
-        marginTop: 10,
-        borderRadius: 10,
-        paddingVertical: 5
+        marginTop: 16,
+        borderRadius: 16,
+        paddingVertical: 8,
+        backgroundColor: '#1A5F7A',
+        ...theme.shadows.medium,
     }
 });
 
