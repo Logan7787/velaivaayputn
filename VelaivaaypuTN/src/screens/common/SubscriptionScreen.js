@@ -7,6 +7,7 @@ import api from '../../api/axios.config';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadUser } from '../../redux/authSlice';
+import { showToast } from '../../redux/uiSlice';
 import { RAZORPAY_KEY_ID, APP_NAME, APP_COLOR } from '../../config';
 
 const PLANS = [
@@ -34,6 +35,8 @@ const SubscriptionScreen = ({ navigation }) => {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [visible, setVisible] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
 
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);

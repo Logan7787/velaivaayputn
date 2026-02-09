@@ -29,6 +29,8 @@ api.interceptors.response.use(
         if (response) {
             if (response.status === 401) {
                 store.dispatch(showToast({ message: 'Session expired. Please login again.', type: 'error' }));
+            } else if (response.status === 403) {
+                store.dispatch(showToast({ message: 'Access denied. You do not have permission.', type: 'error' }));
             } else if (response.status >= 500) {
                 store.dispatch(showToast({ message: 'Server error. Please try again later.', type: 'error' }));
             }

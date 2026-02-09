@@ -1,7 +1,7 @@
 import React from 'react';
 import { Snackbar, useTheme } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { hideToast } from '../redux/uiSlice';
+import { hideToast } from '../../redux/uiSlice';
 
 const GlobalToast = () => {
     const dispatch = useDispatch();
