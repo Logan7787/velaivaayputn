@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getChatMessages } from '../../api/chatApi';
 import { receiveMessage } from '../../redux/chatSlice';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from 'react-native-paper';
+import { useTheme, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Use a consistent Socket URL
