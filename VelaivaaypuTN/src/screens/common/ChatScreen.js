@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Platform, Text } from 'react-native';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
 import { io } from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
 import { getChatMessages } from '../../api/chatApi';
 import { receiveMessage } from '../../redux/chatSlice';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme, Text } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Use a consistent Socket URL
@@ -133,35 +133,36 @@ const ChatScreen = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.container} edges={['bottom']}>
-            <GiftedChat
-                messages={messages}
-                onSend={messages => onSend(messages)}
-                user={{
-                    _id: user?.id,
-                    name: user?.name,
-                    avatar: user?.profileImage
-                }}
-                renderBubble={renderBubble}
-                renderSend={renderSend}
-                placeholder="Type a message..."
-                showUserAvatar
-                alwaysShowSend
-                scrollToBottom
-                infiniteScroll
-                renderUsernameOnMessage
-                renderChatEmpty={() => (
-                    <View style={styles.emptyContainer}>
-                        <Icon name="message-outline" size={48} color="#CBD5E1" />
-                        <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
-                    </View>
-                )}
-                renderInputToolbar={(props) => (
-                    <InputToolbar
-                        {...props}
-                        containerStyle={styles.inputToolbar}
-                    />
-                )}
-            />
+            <View style={{ flex: 1, backgroundColor: '#fff' }}>
+                <GiftedChat
+                    messages={messages}
+                    onSend={messages => onSend(messages)}
+                    user={{
+                        _id: user?.id,
+                        name: user?.name,
+                        avatar: user?.profileImage
+                    }}
+                    renderBubble={renderBubble}
+                    renderSend={renderSend}
+                    placeholder="Type a message..."
+                    showUserAvatar
+                    alwaysShowSend
+                    scrollToBottom
+                    infiniteScroll
+                    renderUsernameOnMessage
+                    renderChatEmpty={() => (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
+                        </View>
+                    )}
+                    renderInputToolbar={(props) => (
+                        <InputToolbar
+                            {...props}
+                            containerStyle={styles.inputToolbar}
+                        />
+                    )}
+                />
+            </View>
         </SafeAreaView>
     );
 };
