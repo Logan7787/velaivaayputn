@@ -43,16 +43,13 @@ const register = async (req, res) => {
             expiresIn: process.env.JWT_EXPIRE
         });
 
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = user;
+
         res.status(201).json({
             message: 'User registered successfully',
             token,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                name: user.name,
-                subscription: user.subscription
-            }
+            user: userWithoutPassword
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -84,16 +81,13 @@ const login = async (req, res) => {
             expiresIn: process.env.JWT_EXPIRE
         });
 
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = user;
+
         res.json({
             message: 'Login successful',
             token,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                name: user.name,
-                subscription: user.subscription
-            }
+            user: userWithoutPassword
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -107,7 +101,15 @@ const getMe = async (req, res) => {
             where: { id: req.user.id },
             include: { subscription: true }
         });
-        res.json(user);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json(userWithoutPassword);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
@@ -135,9 +137,12 @@ const updateProfile = async (req, res) => {
             include: { subscription: true }
         });
 
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
         res.json({
             message: 'Profile updated successfully',
-            user: updatedUser
+            user: userWithoutPassword
         });
     } catch (error) {
         console.error('Update profile error:', error);
