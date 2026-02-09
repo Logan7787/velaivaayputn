@@ -8,7 +8,6 @@ import { loadUser, logoutUser } from '../../redux/authSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import { theme } from '../../theme';
 import VerifiedBadge from '../../components/common/VerifiedBadge';
 
@@ -127,12 +126,7 @@ const EmployerProfileScreen = ({ navigation }) => {
                         {form.headerImage ? (
                             <Image source={{ uri: form.headerImage }} style={styles.headerImg} />
                         ) : (
-                            <LinearGradient
-                                colors={['#1A5F7A', '#159895']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.headerGradient}
-                            />
+                            <View style={[styles.headerGradient, { backgroundColor: '#1A5F7A' }]} />
                         )}
                         <View style={styles.profileSection}>
                             <View style={styles.avatarWrapper}>
