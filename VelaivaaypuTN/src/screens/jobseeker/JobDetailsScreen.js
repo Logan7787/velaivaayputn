@@ -71,7 +71,7 @@ const JobDetailsScreen = ({ route, navigation }) => {
             const chat = await initiateChat(jobId, job.employerId);
 
             // Navigate to Chat Screen
-            navigation.navigate('ChatScreen', {
+            navigation.navigate('Chat', {
                 chatId: chat.id,
                 otherUser: { name: job.companyName }
             });
