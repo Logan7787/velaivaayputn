@@ -129,32 +129,39 @@ const ChatScreen = ({ route, navigation }) => {
 
     if (!user) return null;
 
+    console.log('[Chat] Rendering with messages:', messages.length, 'User:', user?.id);
+
     return (
         <SafeAreaView style={styles.container} edges={['bottom']}>
-            <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-                <GiftedChat
-                    messages={messages}
-                    onSend={messages => onSend(messages)}
-                    user={{
-                        _id: user.id,
-                        name: user.name,
-                    }}
-                    renderBubble={renderBubble}
-                    renderSend={renderSend}
-                    placeholder="Type a message..."
-                    showUserAvatar
-                    alwaysShowSend
-                    scrollToBottom
-                    infiniteScroll
-                    renderUsernameOnMessage
-                    renderInputToolbar={(props) => (
-                        <InputToolbar
-                            {...props}
-                            containerStyle={styles.inputToolbar}
-                        />
-                    )}
-                />
-            </View>
+            <GiftedChat
+                messages={messages}
+                onSend={messages => onSend(messages)}
+                user={{
+                    _id: user?.id,
+                    name: user?.name,
+                    avatar: user?.profileImage
+                }}
+                renderBubble={renderBubble}
+                renderSend={renderSend}
+                placeholder="Type a message..."
+                showUserAvatar
+                alwaysShowSend
+                scrollToBottom
+                infiniteScroll
+                renderUsernameOnMessage
+                renderChatEmpty={() => (
+                    <View style={styles.emptyContainer}>
+                        <Icon name="message-outline" size={48} color="#CBD5E1" />
+                        <Text style={styles.emptyText}>No messages yet. Say hello!</Text>
+                    </View>
+                )}
+                renderInputToolbar={(props) => (
+                    <InputToolbar
+                        {...props}
+                        containerStyle={styles.inputToolbar}
+                    />
+                )}
+            />
         </SafeAreaView>
     );
 };
@@ -178,7 +185,18 @@ const styles = StyleSheet.create({
     inputToolbar: {
         borderTopWidth: 1,
         borderTopColor: '#E2E8F0',
-        paddingTop: 5,
+        backgroundColor: '#fff',
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        transform: [{ scaleY: -1 }] // GiftedChat inverted list
+    },
+    emptyText: {
+        marginTop: 10,
+        color: '#94A3B8',
+        fontSize: 14,
     }
 });
 
