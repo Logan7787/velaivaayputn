@@ -210,11 +210,42 @@ const getJobApplications = async (req, res) => {
     }
 };
 
+const updateApplicationStatus = async (req, res) => {
+    try {
+        const { applicationId } = req.params;
+        const { status } = req.body;
+
+        // Find application
+        const application = await prisma.contact.findUnique({
+            where: { id: applicationId },
+            include: { job: true }
+        });
+
+        if (!application) return res.status(404).json({ error: 'Application not found' });
+
+        // Verify authorized
+        if (application.job.employerId !== req.user.id) {
+            return res.status(403).json({ error: 'Not authorized to update this application' });
+        }
+
+        const updated = await prisma.contact.update({
+            where: { id: applicationId },
+            data: { status }
+        });
+
+        res.json({ message: 'Status updated successfully', application: updated });
+    } catch (error) {
+        console.error('Update application status error:', error);
+        res.status(500).json({ error: 'Failed to update status' });
+    }
+};
+
 module.exports = {
     createJob,
     getJobs,
     getJobById,
     getMyJobs,
     applyForJob,
-    getJobApplications
+    getJobApplications,
+    updateApplicationStatus
 };

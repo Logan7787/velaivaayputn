@@ -1,19 +1,24 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Linking, Dimensions, StatusBar, TouchableOpacity } from 'react-native';
-import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme } from 'react-native-paper';
+import { Text, Card, Avatar, Button, Chip, Divider, IconButton, Surface, useTheme, Menu } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { initiateChat } from '../../api/chatApi';
+import { updateApplicationStatus } from '../../api/jobApi';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../redux/uiSlice';
 
 const { width } = Dimensions.get('window');
 
 const ApplicantDetailsScreen = ({ route, navigation }) => {
-    const { applicant, message, jobId } = route.params;
+    const { applicant, message, jobId, applicationId, currentStatus } = route.params;
     const theme = useTheme();
     const dispatch = useDispatch();
     const insets = useSafeAreaInsets();
+    const [status, setStatus] = React.useState(currentStatus);
+    const [menuVisible, setMenuVisible] = React.useState(false);
+
+    const STATUS_OPTIONS = ['PENDING', 'REVIEWED', 'SHORTLISTED', 'INTERVIEW', 'HIRED', 'REJECTED'];
 
     const handleCall = () => {
         Linking.openURL(`tel:${applicant.phone}`);
@@ -32,6 +37,27 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
             });
         } catch (error) {
             dispatch(showToast({ message: 'Failed to start chat', type: 'error' }));
+        }
+    };
+
+    const handleStatusUpdate = async (newStatus) => {
+        setMenuVisible(false);
+        try {
+            await updateApplicationStatus(applicationId, newStatus);
+            setStatus(newStatus);
+            dispatch(showToast({ message: `Status updated to ${newStatus}`, type: 'success' }));
+        } catch (error) {
+            dispatch(showToast({ message: 'Failed to update status', type: 'error' }));
+        }
+    };
+
+    const getStatusColor = (s) => {
+        switch (s) {
+            case 'SHORTLISTED': return '#0EA5E9';
+            case 'HIRED': return '#10B981';
+            case 'REJECTED': return '#EF4444';
+            case 'INTERVIEW': return '#F59E0B';
+            default: return '#64748B';
         }
     };
 
@@ -54,7 +80,27 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                     <Text variant="titleMedium" style={{ color: theme.colors.onPrimary, fontWeight: '600' }}>
                         Applicant Profile
                     </Text>
-                    <View style={{ width: 48 }} />
+                    <Menu
+                        visible={menuVisible}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={
+                            <IconButton
+                                icon="dots-vertical"
+                                iconColor={theme.colors.onPrimary}
+                                size={24}
+                                onPress={() => setMenuVisible(true)}
+                            />
+                        }
+                    >
+                        {STATUS_OPTIONS.map((opt) => (
+                            <Menu.Item
+                                key={opt}
+                                onPress={() => handleStatusUpdate(opt)}
+                                title={opt}
+                                titleStyle={{ color: opt === status ? theme.colors.primary : '#333', fontWeight: opt === status ? 'bold' : 'normal' }}
+                            />
+                        ))}
+                    </Menu>
                 </View>
             </SafeAreaView>
 
@@ -88,8 +134,8 @@ const ApplicantDetailsScreen = ({ route, navigation }) => {
                         <Text style={styles.infoSub}>Experience</Text>
                     </View>
                     <View style={styles.infoItem}>
-                        <MaterialIcons name="verified" size={28} color={theme.colors.primary} />
-                        <Text style={styles.infoLabel}>Verified</Text>
+                        <MaterialIcons name="verified" size={28} color={getStatusColor(status)} />
+                        <Text style={[styles.infoLabel, { color: getStatusColor(status) }]}>{status}</Text>
                         <Text style={styles.infoSub}>Status</Text>
                     </View>
                 </View>

@@ -7,14 +7,19 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const JobApplicationsScreen = ({ route, navigation }) => {
     const { jobId, jobTitle } = route.params;
     const [applications, setApplications] = useState([]);
+    const [filteredApps, setFilteredApps] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedStatus, setSelectedStatus] = useState('ALL');
     const theme = useTheme();
+
+    const STATUSES = ['ALL', 'PENDING', 'REVIEWED', 'SHORTLISTED', 'INTERVIEW', 'HIRED', 'REJECTED'];
 
     useEffect(() => {
         const fetchApplications = async () => {
             try {
                 const data = await getJobApplications(jobId);
                 setApplications(data);
+                setFilteredApps(data);
             } catch (error) {
                 Alert.alert('Error', 'Failed to fetch applications');
             } finally {
@@ -23,6 +28,24 @@ const JobApplicationsScreen = ({ route, navigation }) => {
         };
         fetchApplications();
     }, [jobId]);
+
+    useEffect(() => {
+        if (selectedStatus === 'ALL') {
+            setFilteredApps(applications);
+        } else {
+            setFilteredApps(applications.filter(app => app.status === selectedStatus));
+        }
+    }, [selectedStatus, applications]);
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'SHORTLISTED': return '#0EA5E9';
+            case 'HIRED': return '#10B981';
+            case 'REJECTED': return '#EF4444';
+            case 'INTERVIEW': return '#F59E0B';
+            default: return '#64748B';
+        }
+    };
 
     const renderItem = ({ item }) => (
         <Surface style={styles.cardContainer} elevation={1}>
@@ -35,8 +58,16 @@ const JobApplicationsScreen = ({ route, navigation }) => {
                 />
                 <View style={styles.headerText}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text variant="titleMedium" style={{ fontWeight: 'bold', color: '#333' }}>{item.jobSeeker.name}</Text>
-                        <MaterialIcons name="chevron-right" size={24} color="#999" />
+                        <View style={{ flex: 1 }}>
+                            <Text variant="titleMedium" style={{ fontWeight: 'bold', color: '#333' }} numberOfLines={1}>{item.jobSeeker.name}</Text>
+                        </View>
+                        <Chip
+                            textStyle={{ fontSize: 10, fontWeight: 'bold', color: getStatusColor(item.status) }}
+                            style={{ backgroundColor: getStatusColor(item.status) + '15', height: 24, borderRadius: 6 }}
+                            compact
+                        >
+                            {item.status || 'PENDING'}
+                        </Chip>
                     </View>
                     <View style={styles.dateContainer}>
                         <MaterialIcons name="event" size={14} color="#777" />
@@ -69,7 +100,13 @@ const JobApplicationsScreen = ({ route, navigation }) => {
 
             <Button
                 mode="outlined"
-                onPress={() => navigation.navigate('ApplicantDetails', { applicant: item.jobSeeker, message: item.message, jobId })}
+                onPress={() => navigation.navigate('ApplicantDetails', {
+                    applicant: item.jobSeeker,
+                    message: item.message,
+                    jobId,
+                    applicationId: item.id,
+                    currentStatus: item.status || 'PENDING'
+                })}
                 style={styles.viewProfileBtn}
                 labelStyle={{ fontSize: 13, fontWeight: 'bold', color: '#1A5F7A' }}
                 contentStyle={{ height: 40 }}
@@ -91,7 +128,35 @@ const JobApplicationsScreen = ({ route, navigation }) => {
                 <Appbar.Content title={`Applicants: ${jobTitle}`} titleStyle={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }} />
             </Appbar.Header>
 
-            {applications.length === 0 ? (
+            {/* Status Pipeline Filter */}
+            <View style={styles.filterSection}>
+                <FlatList
+                    horizontal
+                    data={STATUSES}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterList}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity
+                            onPress={() => setSelectedStatus(item)}
+                            style={[
+                                styles.statusTab,
+                                selectedStatus === item && { borderBottomColor: theme.colors.primary, borderBottomWidth: 3 }
+                            ]}
+                        >
+                            <Text style={[
+                                styles.statusTabText,
+                                selectedStatus === item && { color: theme.colors.primary, fontWeight: 'bold' }
+                            ]}>
+                                {item}
+                                {item === 'ALL' ? ` (${applications.length})` : ` (${applications.filter(a => a.status === item).length})`}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    keyExtractor={item => item}
+                />
+            </View>
+
+            {filteredApps.length === 0 ? (
                 <View style={styles.center}>
                     <Surface style={styles.emptyState} elevation={0}>
                         <MaterialIcons name="people-outline" size={60} color="#DDD" />
@@ -105,7 +170,7 @@ const JobApplicationsScreen = ({ route, navigation }) => {
                 </View>
             ) : (
                 <FlatList
-                    data={applications}
+                    data={filteredApps}
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.list}
@@ -172,6 +237,24 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 40,
         backgroundColor: 'transparent',
+    },
+    filterSection: {
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#EEE',
+    },
+    filterList: {
+        paddingHorizontal: 16,
+    },
+    statusTab: {
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+        marginRight: 8,
+    },
+    statusTabText: {
+        fontSize: 12,
+        color: '#64748B',
+        fontWeight: '600',
     }
 });
 
