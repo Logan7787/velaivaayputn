@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, Alert, StatusBar } from 'react-native';
+import { View, StyleSheet, FlatList, Alert, StatusBar, TouchableOpacity, Image } from 'react-native';
 import { Text, Card, Avatar, Button, ActivityIndicator, Appbar, Surface, useTheme, Chip, IconButton } from 'react-native-paper';
 import { getJobApplications } from '../../api/jobApi';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
