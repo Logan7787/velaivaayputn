@@ -70,16 +70,16 @@ const EmployerDashboard = ({ navigation }) => {
             {/* Premium Header */}
             <View style={[styles.header, { backgroundColor: '#1A5F7A' }]}>
                 <View style={styles.headerTop}>
-                    <View>
-                        <Text style={styles.greeting}>Welcome, {user?.name?.split(' ')[0] || 'Employer'}</Text>
-                        <Text style={styles.subtext}>{user?.companyName || 'Company Admin'}</Text>
+                    <View style={{ flex: 1, marginRight: 15 }}>
+                        <Text style={styles.greeting} numberOfLines={1}>Welcome, {user?.name?.split(' ')[0] || 'Employer'}</Text>
+                        <Text style={styles.subtext} numberOfLines={1} ellipsizeMode="tail">{user?.companyName || 'Company Admin'}</Text>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
                         <IconButton
                             icon="message-outline"
                             iconColor="#fff"
                             size={24}
-                            style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                            style={{ backgroundColor: 'rgba(255,255,255,0.1)', marginRight: 8 }}
                             onPress={() => navigation.navigate('ChatList')}
                         />
                         <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
