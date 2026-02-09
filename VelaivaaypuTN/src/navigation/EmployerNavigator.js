@@ -2,8 +2,9 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import EmployerDashboard from '../screens/employer/DashboardScreen';
 import SubscriptionScreen from '../screens/common/SubscriptionScreen';
-
-import NotificationScreen from '../screens/common/NotificationScreen';
+import PostJobScreen from '../screens/employer/PostJobScreen';
+import JobApplicationsScreen from '../screens/employer/JobApplicationsScreen';
+import ApplicantDetailsScreen from '../screens/employer/ApplicantDetailsScreen';
 import ChatListScreen from '../screens/common/ChatListScreen';
 import ChatScreen from '../screens/common/ChatScreen';
 import EmployerProfileScreen from '../screens/employer/EmployerProfileScreen';
